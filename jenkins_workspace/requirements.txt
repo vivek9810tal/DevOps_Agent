@@ -1,0 +1,26 @@
+# Agentic DevSecOps Backend - Python Dependencies
+
+# Web API
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+
+# Environment/configuration
+python-dotenv>=1.0,<2.0
+
+# HTTP / Jenkins API calls
+requests>=2.32,<3.0
+
+# Data validation / structured agent outputs
+pydantic>=2.8,<3.0
+
+# LangChain / OpenAI agent stack
+langchain>=0.3,<1.0
+langchain-core>=0.3,<1.0
+langchain-openai>=0.2,<1.0
+langgraph>=0.2,<1.0
+
+# OpenAI Python client
+openai>=1.50,<3.0
+
+# Useful runtime compatibility helpers
+typing-extensions>=4.12
