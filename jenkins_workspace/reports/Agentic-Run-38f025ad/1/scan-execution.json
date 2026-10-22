@@ -1,0 +1,9 @@
+{
+  "stage": "Scan",
+  "scanner_availability": {
+    "semgrep": true,
+    "gitleaks": true,
+    "trivy": true
+  },
+  "execution_failures": []
+}

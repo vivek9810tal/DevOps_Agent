@@ -1,0 +1,17 @@
+{
+  "decision": "FAIL",
+  "blocking_findings": [
+    "Grype findings: 28 critical, 254 high vulnerabilities"
+  ],
+  "missing_evidence": [
+    "Pipeline summary report",
+    "ZAP report",
+    "Test report"
+  ],
+  "non_blocking_findings": [
+    "Semgrep findings: 1",
+    "Trivy IaC findings: 1 high"
+  ],
+  "release_allowed": false,
+  "rationale": "The Jenkins execution resulted in a FAILURE, and the Grype scan identified a significant number of critical and high vulnerabilities (28 critical, 254 high), which are considered blocking findings. Additionally, the absence of key reports such as the pipeline summary, ZAP, and test reports further complicates the evaluation, but the critical vulnerabilities alone justify a FAIL decision. Without addressing these vulnerabilities, releasing the software could pose significant security risks."
+}

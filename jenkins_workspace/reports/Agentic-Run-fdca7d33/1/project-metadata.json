@@ -1,0 +1,9 @@
+{
+  "run_id": "fdca7d33",
+  "repository": "https://github.com/vivek9810tal/AIML---Supervised-Learning-Project.git",
+  "branch": "main",
+  "commit": "2a51cd5d9be1aa3181ace81287ec36c4de0f4fcf",
+  "project_type": "python",
+  "dockerfile_present": true,
+  "jenkins_build": "1"
+}

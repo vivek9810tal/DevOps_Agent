@@ -1,0 +1,55 @@
+services:
+  api:
+    image: python:3.12-slim
+    container_name: agentic-devsecops-api
+    working_dir: /workspace
+    command: >
+      sh -c "
+      pip install --no-cache-dir -r requirements.txt &&
+      uvicorn api:app --host 0.0.0.0 --port 8000
+      "
+    volumes:
+      - ${BACKEND_DIR:-.}:/workspace
+    env_file:
+      - .env
+    environment:
+      # Inside Docker, localhost points to the API container itself.
+      # host.docker.internal reaches the Windows host where Jenkins is running.
+      JENKINS_URL: ${COMPOSE_JENKINS_URL:-http://host.docker.internal:8080}
+      API_PORT: "8000"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-alpine
+    container_name: agentic-devsecops-ui
+    working_dir: /workspace
+    command: >
+      sh -c "
+      npm ci &&
+      npm run dev -- --host 0.0.0.0 --port 5173
+      "
+    volumes:
+      - ${FRONTEND_DIR:-./frontend}:/workspace
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

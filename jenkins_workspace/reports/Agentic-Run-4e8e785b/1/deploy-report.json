@@ -1,0 +1,8 @@
+{
+  "stage": "Deploy",
+  "status": "FAILED",
+  "container": "agentic-stage-4e8e785b",
+  "image": "agentic-devsecops-4e8e785b:build-1",
+  "container_port": "8080",
+  "reason": "Container exited before staging became available. See staging-container.log."
+}

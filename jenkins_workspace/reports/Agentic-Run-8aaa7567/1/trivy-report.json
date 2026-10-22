@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 2,
+  "Trivy": {
+    "Version": "0.75.0"
+  },
+  "ReportID": "01a163c6-3d64-7d72-815f-8b2854d1f6cc",
+  "CreatedAt": "2026-10-22T08:21:38.6608813-05:00",
+  "ArtifactID": "sha256:f3d581581faa9452d0d31db4c4498de87a933e3ba820772e44f5dede60a1dbc2",
+  "ArtifactName": ".",
+  "ArtifactType": "repository",
+  "Metadata": {
+    "RepoURL": "https://github.com/vivek9810tal/AIML---Supervised-Learning-Project.git",
+    "Branch": "main",
+    "Commit": "2a51cd5d9be1aa3181ace81287ec36c4de0f4fcf",
+    "CommitMsg": "Create Dockerfile",
+    "Author": "vivek9810tal <saivivek.talluri@gmail.com>",
+    "Committer": "GitHub <noreply@github.com>"
+  }
+}

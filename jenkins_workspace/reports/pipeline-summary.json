@@ -1,0 +1,35 @@
+{
+  "semgrep": {
+    "executed": true,
+    "findings": 1,
+    "error_severity": 1
+  },
+  "gitleaks": {
+    "executed": true,
+    "findings": 0
+  },
+  "trivy": {
+    "executed": true,
+    "critical": 0,
+    "high": 0
+  },
+  "trivy_iac": {
+    "executed": false,
+    "critical": null,
+    "high": null
+  },
+  "grype": {
+    "executed": true,
+    "critical": 0,
+    "high": 0
+  },
+  "zap": {
+    "executed": false,
+    "high": null,
+    "medium": null
+  },
+  "policy_failures": [
+    "Semgrep ERROR findings: 1",
+    "trivy_iac: required report missing"
+  ]
+}

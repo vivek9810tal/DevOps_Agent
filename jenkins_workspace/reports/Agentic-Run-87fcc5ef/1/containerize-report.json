@@ -1,0 +1,6 @@
+{
+  "stage": "Containerize",
+  "status": "BUILT",
+  "image": "agentic-devsecops-87fcc5ef:build-1",
+  "image_id": "sha256:778d36fbbc97cad675b9d732e4b0472e09bb5a9316faa08669c9c8ec19e6da87"
+}
