@@ -56,6 +56,8 @@ const stagePresentation = (status) => {
       return { detail: 'Completed', detailColor: 'text-emerald-500' };
     case 'failed':
       return { detail: 'Failed', detailColor: 'text-red-400' };
+    case 'blocked':
+      return { detail: 'Blocked', detailColor: 'text-amber-300' };
     case 'skipped':
       return { detail: 'Not applicable', detailColor: 'text-amber-400' };
     default:
@@ -155,6 +157,32 @@ export default function App() {
     setPipelineStatus('error');
     setActiveNode('Execution Failed');
     addLog(`ERROR: ${message}`);
+  };
+
+  const markPipelineBlocked = (message, failures = []) => {
+    setIsRunning(false);
+    setPipelineStatus('blocked');
+    setActiveNode('Release Blocked by Policy');
+
+    setStages((prev) => {
+      const next = { ...prev };
+      if (next.publish) {
+        const view = stagePresentation('blocked');
+        next.publish = {
+          ...next.publish,
+          status: 'blocked',
+          detail: view.detail,
+          detailColor: view.detailColor
+        };
+      }
+      return next;
+    });
+
+    if (Array.isArray(failures) && failures.length > 0) {
+      setPolicyFailures(failures);
+    }
+
+    addLog(`POLICY BLOCKED: ${message}`);
   };
 
   const threatFromScanner = (key, scanner) => {
@@ -313,10 +341,21 @@ export default function App() {
     }
 
     if (data.type === 'pipeline_complete') {
-      setIsRunning(false);
-      setPipelineStatus('success');
-      setActiveNode(`Jenkins ${data.result || 'SUCCESS'}`);
-      addLog(`Jenkins build completed with result: ${data.result || 'SUCCESS'}.`);
+      const finalStatus = String(data.status || 'success').toLowerCase();
+      const finalResult = data.result || 'SUCCESS';
+
+      if (finalStatus === 'blocked') {
+        markPipelineBlocked(
+          data.message || 'Pipeline execution completed, but release was blocked by policy.',
+          data.policy_failures || []
+        );
+        setActiveNode(`Jenkins ${finalResult} · Release Blocked`);
+      } else {
+        setIsRunning(false);
+        setPipelineStatus('success');
+        setActiveNode(`Jenkins ${finalResult}`);
+        addLog(`Jenkins build completed with result: ${finalResult}.`);
+      }
 
       await fetchReports(
         data.job_name || jenkinsRun.jobName,
@@ -447,6 +486,8 @@ export default function App() {
         return 'border-emerald-800 bg-[#06140b] text-emerald-500';
       case 'failed':
         return 'border-red-500 bg-red-950/30 text-red-400';
+      case 'blocked':
+        return 'border-amber-500 bg-amber-950/30 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.18)]';
       case 'skipped':
         return 'border-amber-700/70 bg-amber-950/20 text-amber-400';
       default:
@@ -459,9 +500,11 @@ export default function App() {
       ? 'System Active'
       : pipelineStatus === 'success'
         ? 'Policy Passed'
-        : pipelineStatus === 'error'
-          ? 'Pipeline Failed'
-          : 'System Idle';
+        : pipelineStatus === 'blocked'
+          ? 'Release Blocked'
+          : pipelineStatus === 'error'
+            ? 'Pipeline Failed'
+            : 'System Idle';
 
   return (
     <div className="min-h-screen p-4 md:p-8 font-sans bg-[#020604] text-slate-200 selection:bg-emerald-500/30">
@@ -483,25 +526,33 @@ export default function App() {
             <div className={`flex items-center space-x-3 bg-[#020604] border ${
               pipelineStatus === 'error'
                 ? 'border-red-800'
-                : isRunning
-                  ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                  : 'border-emerald-900/50'
+                : pipelineStatus === 'blocked'
+                  ? 'border-amber-600 shadow-[0_0_15px_rgba(245,158,11,0.18)]'
+                  : isRunning
+                    ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                    : 'border-emerald-900/50'
             } rounded-lg px-4 py-2 transition-all`}>
               {pipelineStatus === 'error'
                 ? <XCircle className="w-4 h-4 text-red-400" />
-                : <Activity className={`w-4 h-4 ${
-                    isRunning
-                      ? 'text-emerald-400 animate-pulse'
-                      : pipelineStatus === 'success'
-                        ? 'text-emerald-500'
-                        : 'text-slate-500'
-                  }`} />}
+                : pipelineStatus === 'blocked'
+                  ? <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  : <Activity className={`w-4 h-4 ${
+                      isRunning
+                        ? 'text-emerald-400 animate-pulse'
+                        : pipelineStatus === 'success'
+                          ? 'text-emerald-500'
+                          : 'text-slate-500'
+                    }`} />}
               <span className={`text-sm font-bold uppercase tracking-wider ${
                 pipelineStatus === 'error'
                   ? 'text-red-400'
-                  : isRunning
-                    ? 'text-emerald-400'
-                    : 'text-slate-400'
+                  : pipelineStatus === 'blocked'
+                    ? 'text-amber-300'
+                    : isRunning
+                      ? 'text-emerald-400'
+                      : pipelineStatus === 'success'
+                        ? 'text-emerald-400'
+                        : 'text-slate-400'
               }`}>
                 {statusLabel}
               </span>
@@ -665,9 +716,11 @@ export default function App() {
                           ? <CheckCircle className="w-4 h-4 text-emerald-500" />
                           : stage.status === 'failed'
                             ? <XCircle className="w-4 h-4 text-red-400" />
-                            : stage.status === 'skipped'
-                              ? <MinusCircle className="w-4 h-4 text-amber-400" />
-                              : <StageIcon className="w-4 h-4 opacity-40" />}
+                            : stage.status === 'blocked'
+                              ? <AlertTriangle className="w-4 h-4 text-amber-400" />
+                              : stage.status === 'skipped'
+                                ? <MinusCircle className="w-4 h-4 text-amber-400" />
+                                : <StageIcon className="w-4 h-4 opacity-40" />}
                     </div>
 
                     <h4 className="font-bold text-sm tracking-wide mb-1 leading-tight">
@@ -769,11 +822,11 @@ export default function App() {
               </div>
 
               {policyFailures.length > 0 && (
-                <div className="mt-5 border border-red-900/70 bg-red-950/20 rounded-lg p-4">
-                  <div className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">
-                    Policy Gate Failures
+                <div className="mt-5 border border-amber-800/70 bg-amber-950/20 rounded-lg p-4">
+                  <div className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-3">
+                    Release Blocking Findings
                   </div>
-                  <ul className="space-y-2 text-[11px] font-mono text-red-300">
+                  <ul className="space-y-2 text-[11px] font-mono text-amber-200">
                     {policyFailures.map((item, index) => (
                       <li key={index}>• {item}</li>
                     ))}
@@ -782,7 +835,7 @@ export default function App() {
               )}
 
               <p className="text-[10px] leading-relaxed text-slate-600 font-mono mt-5">
-                A missing scanner report is shown as not executed, never as zero findings.
+                A missing scanner report is shown as not executed, never as zero findings. Generated deployment adapters are explicit evidence, not hidden repository modifications.
                 Stage state is driven by Jenkins [UI_STAGE] evidence rather than frontend inference.
               </p>
             </div>

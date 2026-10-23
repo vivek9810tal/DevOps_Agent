@@ -1,0 +1,8 @@
+{
+  "deployable": true,
+  "adapter": "jupyterlab",
+  "dockerfile": ".agentic/Dockerfile.generated",
+  "expected_port": 8888,
+  "reason": "Notebook-only repository detected after excluding generated CI artifacts; staged as JupyterLab.",
+  "generated": true
+}

@@ -1,0 +1,12 @@
+{
+  "unit_tests": "NOT_CONFIGURED",
+  "runner": null,
+  "exit_code": null,
+  "discovery": {
+    "project_type": "python-source",
+    "selected_strategy": null,
+    "evidence": [
+      "no Python test files matching test_*.py or *_test.py"
+    ]
+  }
+}

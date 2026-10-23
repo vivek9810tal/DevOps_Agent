@@ -1,0 +1,13 @@
+OPENAI_API_KEY="Generate your own key at https://platform.openai.com/account/api-keys"
+
+LANGCHAIN_TRACING_V2="true"
+LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+LANGCHAIN_API_KEY="Generate your own key at https://smith.langchain.com"
+LANGCHAIN_PROJECT="Create a new project at https://smith.langchain.com"
+
+
+JENKINS_URL="http://localhost:8080"
+JENKINS_USER="Generate your own user at https://localhost:8080/user"
+# Generate this in Jenkins -> Profile -> Configure -> Add new Token
+JENKINS_API_TOKEN="Generate your own token at https://localhost:8080/user/" 
+JENKINS_JOB_NAME="Generate your own job name at https://localhost:8080/job/<job_name>/"

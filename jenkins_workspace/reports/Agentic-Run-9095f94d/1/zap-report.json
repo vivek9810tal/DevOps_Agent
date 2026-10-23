@@ -1,0 +1,829 @@
+{
+  "@programName": "ZAP",
+  "@version": "2.17.0",
+  "@generated": "Fri, 23 Oct 2026 21:01:25",
+  "created": "2026-10-23T21:01:25.781325300Z",
+  "insights": [
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.code.2xx",
+      "description": "Percentage of responses with status code 2xx",
+      "statistic": "76"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.code.3xx",
+      "description": "Percentage of responses with status code 3xx",
+      "statistic": "7"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.code.4xx",
+      "description": "Percentage of responses with status code 4xx",
+      "statistic": "15"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.ctype.application/javascript",
+      "description": "Percentage of endpoints with content type application/javascript",
+      "statistic": "9"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.ctype.image/png",
+      "description": "Percentage of endpoints with content type image/png",
+      "statistic": "9"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.ctype.image/vnd.microsoft.icon",
+      "description": "Percentage of endpoints with content type image/vnd.microsoft.icon",
+      "statistic": "27"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.ctype.text/css",
+      "description": "Percentage of endpoints with content type text/css",
+      "statistic": "27"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.ctype.text/html",
+      "description": "Percentage of endpoints with content type text/html",
+      "statistic": "27"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.method.GET",
+      "description": "Percentage of endpoints with method GET",
+      "statistic": "100"
+    },
+    {
+      "level": "Info",
+      "reason": "Informational",
+      "site": "http://host.docker.internal:50947",
+      "key": "insight.endpoint.total",
+      "description": "Count of total endpoints",
+      "statistic": "11"
+    }
+  ],
+  "site": [
+    {
+      "@name": "http://host.docker.internal:50947",
+      "@host": "host.docker.internal",
+      "@port": "50947",
+      "@ssl": "false",
+      "alerts": [
+        {
+          "pluginid": "10055",
+          "alertRef": "10055-13",
+          "alert": "CSP: Failure to Define Directive with No Fallback",
+          "name": "CSP: Failure to Define Directive with No Fallback",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "desc": "<p>The Content Security Policy fails to define one of the directives that has no fallback. Missing/excluding them is the same as allowing anything.</p>",
+          "instances": [
+            {
+              "id": "13",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The directive(s): form-action is/are among the directives that do not fallback to default-src."
+            },
+            {
+              "id": "16",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The directive(s): form-action is/are among the directives that do not fallback to default-src."
+            },
+            {
+              "id": "15",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The directive(s): form-action is/are among the directives that do not fallback to default-src."
+            },
+            {
+              "id": "14",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The directive(s): form-action is/are among the directives that do not fallback to default-src."
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+          "otherinfo": "<p>The directive(s): form-action is/are among the directives that do not fallback to default-src.</p>",
+          "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+          "cweid": "693",
+          "wascid": "15",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10055",
+          "alertRef": "10055-4",
+          "alert": "CSP: Wildcard Directive",
+          "name": "CSP: Wildcard Directive",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks. Including (but not limited to) Cross Site Scripting (XSS), and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+          "instances": [
+            {
+              "id": "20",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The following directives either allow wildcard sources (or ancestors), are not defined, or are overly broadly defined:\nscript-src, style-src, img-src, connect-src, frame-src, font-src, media-src, object-src, manifest-src, worker-src"
+            },
+            {
+              "id": "19",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The following directives either allow wildcard sources (or ancestors), are not defined, or are overly broadly defined:\nscript-src, style-src, img-src, connect-src, frame-src, font-src, media-src, object-src, manifest-src, worker-src"
+            },
+            {
+              "id": "18",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The following directives either allow wildcard sources (or ancestors), are not defined, or are overly broadly defined:\nscript-src, style-src, img-src, connect-src, frame-src, font-src, media-src, object-src, manifest-src, worker-src"
+            },
+            {
+              "id": "17",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "The following directives either allow wildcard sources (or ancestors), are not defined, or are overly broadly defined:\nscript-src, style-src, img-src, connect-src, frame-src, font-src, media-src, object-src, manifest-src, worker-src"
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+          "otherinfo": "<p>The following directives either allow wildcard sources (or ancestors), are not defined, or are overly broadly defined:</p><p>script-src, style-src, img-src, connect-src, frame-src, font-src, media-src, object-src, manifest-src, worker-src</p>",
+          "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+          "cweid": "693",
+          "wascid": "15",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10055",
+          "alertRef": "10055-5",
+          "alert": "CSP: script-src unsafe-inline",
+          "name": "CSP: script-src unsafe-inline",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks. Including (but not limited to) Cross Site Scripting (XSS), and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+          "instances": [
+            {
+              "id": "24",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "script-src includes unsafe-inline."
+            },
+            {
+              "id": "22",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "script-src includes unsafe-inline."
+            },
+            {
+              "id": "26",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "script-src includes unsafe-inline."
+            },
+            {
+              "id": "21",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "script-src includes unsafe-inline."
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+          "otherinfo": "<p>script-src includes unsafe-inline.</p>",
+          "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+          "cweid": "693",
+          "wascid": "15",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10055",
+          "alertRef": "10055-6",
+          "alert": "CSP: style-src unsafe-inline",
+          "name": "CSP: style-src unsafe-inline",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks. Including (but not limited to) Cross Site Scripting (XSS), and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+          "instances": [
+            {
+              "id": "27",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "style-src includes unsafe-inline."
+            },
+            {
+              "id": "23",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "style-src includes unsafe-inline."
+            },
+            {
+              "id": "28",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "style-src includes unsafe-inline."
+            },
+            {
+              "id": "25",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "style-src includes unsafe-inline."
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+          "otherinfo": "<p>style-src includes unsafe-inline.</p>",
+          "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+          "cweid": "693",
+          "wascid": "15",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10055",
+          "alertRef": "10055-3",
+          "alert": "CSP: Notices",
+          "name": "CSP: Notices",
+          "riskcode": "1",
+          "confidence": "3",
+          "riskdesc": "Low (High)",
+          "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks. Including (but not limited to) Cross Site Scripting (XSS), and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+          "instances": [
+            {
+              "id": "11",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "Warnings:\nThe report-uri directive has been deprecated in favor of the new report-to directive\n"
+            },
+            {
+              "id": "12",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "Warnings:\nThe report-uri directive has been deprecated in favor of the new report-to directive\n"
+            },
+            {
+              "id": "7",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "Warnings:\nThe report-uri directive has been deprecated in favor of the new report-to directive\n"
+            },
+            {
+              "id": "6",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "attack": "",
+              "evidence": "frame-ancestors 'self'; report-uri /api/security/csp-report",
+              "otherinfo": "Warnings:\nThe report-uri directive has been deprecated in favor of the new report-to directive\n"
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+          "otherinfo": "<p>Warnings:</p><p>The report-uri directive has been deprecated in favor of the new report-to directive</p><p></p>",
+          "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+          "cweid": "693",
+          "wascid": "15",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10010",
+          "alertRef": "10010",
+          "alert": "Cookie No HttpOnly Flag",
+          "name": "Cookie No HttpOnly Flag",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "desc": "<p>A cookie has been set without the HttpOnly flag, which means that the cookie can be accessed by JavaScript. If a malicious script can be run on this page then the cookie will be accessible and can be transmitted to another site. If this is a session cookie then session hijacking may be possible.</p>",
+          "instances": [
+            {
+              "id": "30",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "_xsrf",
+              "attack": "",
+              "evidence": "Set-Cookie: _xsrf",
+              "otherinfo": ""
+            },
+            {
+              "id": "29",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "_xsrf",
+              "attack": "",
+              "evidence": "Set-Cookie: _xsrf",
+              "otherinfo": ""
+            },
+            {
+              "id": "31",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "_xsrf",
+              "attack": "",
+              "evidence": "Set-Cookie: _xsrf",
+              "otherinfo": ""
+            }
+          ],
+          "count": "3",
+          "systemic": false,
+          "solution": "<p>Ensure that the HttpOnly flag is set for all cookies.</p>",
+          "otherinfo": "",
+          "reference": "<p>https://owasp.org/www-community/HttpOnly</p>",
+          "cweid": "1004",
+          "wascid": "13",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10054",
+          "alertRef": "10054-1",
+          "alert": "Cookie without SameSite Attribute",
+          "name": "Cookie without SameSite Attribute",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "desc": "<p>A cookie has been set without the SameSite attribute, which means that the cookie can be sent as a result of a 'cross-site' request. The SameSite attribute is an effective counter measure to cross-site request forgery, cross-site script inclusion, and timing attacks.</p>",
+          "instances": [
+            {
+              "id": "36",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "_xsrf",
+              "attack": "",
+              "evidence": "Set-Cookie: _xsrf",
+              "otherinfo": ""
+            },
+            {
+              "id": "33",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "Set-Cookie: username-host-docker-internal-50947",
+              "otherinfo": ""
+            },
+            {
+              "id": "34",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "Set-Cookie: username-host-docker-internal-50947",
+              "otherinfo": ""
+            },
+            {
+              "id": "35",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "_xsrf",
+              "attack": "",
+              "evidence": "Set-Cookie: _xsrf",
+              "otherinfo": ""
+            },
+            {
+              "id": "32",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "Set-Cookie: username-host-docker-internal-50947",
+              "otherinfo": ""
+            }
+          ],
+          "count": "5",
+          "systemic": true,
+          "solution": "<p>Ensure that the SameSite attribute is set to either 'lax' or ideally 'strict' for all cookies.</p>",
+          "otherinfo": "",
+          "reference": "<p>https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site</p>",
+          "cweid": "1275",
+          "wascid": "13",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10036",
+          "alertRef": "10036-2",
+          "alert": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+          "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+          "riskcode": "1",
+          "confidence": "3",
+          "riskdesc": "Low (High)",
+          "desc": "<p>The web/application server is leaking version information via the \"Server\" HTTP response header. Access to such information may facilitate attackers identifying other vulnerabilities your web/application server is subject to.</p>",
+          "instances": [
+            {
+              "id": "0",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "TornadoServer/6.6",
+              "otherinfo": ""
+            },
+            {
+              "id": "8",
+              "uri": "http://host.docker.internal:50947/static/favicon.ico?v=50afa725b5de8b00030139d09b38620224d4e7dba47c07ef0e86d4643f30c9bfe6bb7e1a4a1c561aa32834480909a4b6fe7cd1e17f7159330b6b5914bf45a880",
+              "nodeName": "http://host.docker.internal:50947/static/favicon.ico (v)",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "TornadoServer/6.6",
+              "otherinfo": ""
+            },
+            {
+              "id": "3",
+              "uri": "http://host.docker.internal:50947/static/favicons/favicon-busy-1.ico",
+              "nodeName": "http://host.docker.internal:50947/static/favicons/favicon-busy-1.ico",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "TornadoServer/6.6",
+              "otherinfo": ""
+            },
+            {
+              "id": "5",
+              "uri": "http://host.docker.internal:50947/static/favicons/favicon.ico",
+              "nodeName": "http://host.docker.internal:50947/static/favicons/favicon.ico",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "TornadoServer/6.6",
+              "otherinfo": ""
+            },
+            {
+              "id": "4",
+              "uri": "http://host.docker.internal:50947/static/logo/logo.png?v=a2a176ee3cee251ffddf5fa21fe8e43727a9e5f87a06f9c91ad7b776d9e9d3d5e0159c16cc188a3965e00375fb4bc336c16067c688f5040c0c2d4bfdb852a9e4",
+              "nodeName": "http://host.docker.internal:50947/static/logo/logo.png (v)",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "TornadoServer/6.6",
+              "otherinfo": ""
+            }
+          ],
+          "count": "5",
+          "systemic": true,
+          "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to suppress the \"Server\" header or provide generic details.</p>",
+          "otherinfo": "",
+          "reference": "<p>https://httpd.apache.org/docs/current/mod/core.html#servertokens</p><p>https://learn.microsoft.com/en-us/previous-versions/msp-n-p/ff648552(v=pandp.10)</p><p>https://www.troyhunt.com/shhh-dont-let-your-response-headers/</p>",
+          "cweid": "497",
+          "wascid": "13",
+          "sourceid": "6"
+        },
+        {
+          "pluginid": "10096",
+          "alertRef": "10096",
+          "alert": "Timestamp Disclosure - Unix",
+          "name": "Timestamp Disclosure - Unix",
+          "riskcode": "1",
+          "confidence": "1",
+          "riskdesc": "Low (Low)",
+          "desc": "<p>A timestamp was disclosed by the application/web server. - Unix</p>",
+          "instances": [
+            {
+              "id": "58",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "Set-Cookie",
+              "attack": "",
+              "evidence": "1792789282",
+              "otherinfo": "1792789282, which evaluates to: 2026-10-23 21:01:22."
+            },
+            {
+              "id": "47",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "Set-Cookie",
+              "attack": "",
+              "evidence": "1792789282",
+              "otherinfo": "1792789282, which evaluates to: 2026-10-23 21:01:22."
+            },
+            {
+              "id": "46",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "Set-Cookie",
+              "attack": "",
+              "evidence": "1792789282",
+              "otherinfo": "1792789282, which evaluates to: 2026-10-23 21:01:22."
+            }
+          ],
+          "count": "3",
+          "systemic": false,
+          "solution": "<p>Manually confirm that the timestamp data is not sensitive, and that the data cannot be aggregated to disclose exploitable patterns.</p>",
+          "otherinfo": "<p>1792789282, which evaluates to: 2026-10-23 21:01:22.</p>",
+          "reference": "<p>https://cwe.mitre.org/data/definitions/200.html</p>",
+          "cweid": "497",
+          "wascid": "13",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10027",
+          "alertRef": "10027",
+          "alert": "Information Disclosure - Suspicious Comments",
+          "name": "Information Disclosure - Suspicious Comments",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "desc": "<p>The response appears to contain suspicious comments which may help an attacker.</p>",
+          "instances": [
+            {
+              "id": "53",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "/* Remove token from URL. */",
+              "otherinfo": "The following pattern was used: \\bFROM\\b and was detected in likely comment: \"/* Remove token from URL. */\", see evidence field for the suspicious comment/snippet."
+            },
+            {
+              "id": "51",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "// If there is no query string, bail.",
+              "otherinfo": "The following pattern was used: \\bQUERY\\b and was detected 3 times, the first in likely comment: \"// If there is no query string, bail.\", see evidence field for the suspicious comment/snippet."
+            },
+            {
+              "id": "52",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "/* Remove token from URL. */",
+              "otherinfo": "The following pattern was used: \\bFROM\\b and was detected in likely comment: \"/* Remove token from URL. */\", see evidence field for the suspicious comment/snippet."
+            },
+            {
+              "id": "50",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "// If there is no query string, bail.",
+              "otherinfo": "The following pattern was used: \\bQUERY\\b and was detected 3 times, the first in likely comment: \"// If there is no query string, bail.\", see evidence field for the suspicious comment/snippet."
+            },
+            {
+              "id": "40",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "// remote token from search parameters",
+              "otherinfo": "The following pattern was used: \\bFROM\\b and was detected in likely comment: \"// remote token from search parameters\", see evidence field for the suspicious comment/snippet."
+            },
+            {
+              "id": "41",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "// remote token from search parameters",
+              "otherinfo": "The following pattern was used: \\bFROM\\b and was detected in likely comment: \"// remote token from search parameters\", see evidence field for the suspicious comment/snippet."
+            }
+          ],
+          "count": "6",
+          "systemic": false,
+          "solution": "<p>Remove all comments that return information that may help an attacker and fix any underlying problems they refer to.</p>",
+          "otherinfo": "<p>The following pattern was used: \\bFROM\\b and was detected in likely comment: \"/* Remove token from URL. */\", see evidence field for the suspicious comment/snippet.</p>",
+          "reference": "",
+          "cweid": "615",
+          "wascid": "13",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10109",
+          "alertRef": "10109",
+          "alert": "Modern Web Application",
+          "name": "Modern Web Application",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "desc": "<p>The application appears to be a modern web application. If you need to explore it automatically then the Client Spider may well be more effective than the standard one.</p>",
+          "instances": [
+            {
+              "id": "55",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "<script id=\"jupyter-config-data\" type=\"application/json\">{\"allow_hidden_files\": false, \"appName\": \"JupyterLab\", \"appNamespace\": \"lab\", \"appSettingsDir\": \"/usr/local/share/jupyter/lab/settings\", \"appUrl\": \"/lab\", \"appVersion\": \"4.6.4\", \"baseUrl\": \"/\", \"buildAvailable\": true, \"buildCheck\": true, \"cacheFiles\": false, \"copyAbsolutePath\": false, \"delete_to_trash\": true, \"devMode\": false, \"disabledExtensions\": [], \"exposeAppInBrowser\": false, \"extensionManager\": {\"can_install\": true, \"install_path\": \"/usr/local\", \"name\": \"PyPI\"}, \"extraLabextensionsPath\": [], \"federated_extensions\": [{\"entrypoints\": null, \"extension\": \"./extension\", \"load\": \"static/remoteEntry.5cbb9d2323598fbda535.js\", \"name\": \"jupyterlab_pygments\", \"style\": \"./style\"}], \"fullAppUrl\": \"/lab\", \"fullLabextensionsUrl\": \"/lab/extensions\", \"fullLicensesUrl\": \"/lab/api/licenses\", \"fullListingsUrl\": \"/lab/api/listings\", \"fullMathjaxUrl\": \"https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js\", \"fullSettingsUrl\": \"/lab/api/settings\", \"fullStaticUrl\": \"/static/lab\", \"fullThemesUrl\": \"/lab/api/themes\", \"fullTranslationsApiUrl\": \"/lab/api/translations\", \"fullTreeUrl\": \"/lab/tree\", \"fullWorkspacesApiUrl\": \"/lab/api/workspaces\", \"ignorePlugins\": [], \"labextensionsPath\": [\"/root/.local/share/jupyter/labextensions\", \"/usr/local/share/jupyter/labextensions\", \"/usr/share/jupyter/labextensions\"], \"labextensionsUrl\": \"/lab/extensions\", \"licensesUrl\": \"/lab/api/licenses\", \"listingsUrl\": \"/lab/api/listings\", \"mathjaxConfig\": \"TeX-AMS_HTML-full,Safe\", \"mode\": \"multiple-document\", \"news\": {\"disabled\": false}, \"notebookStartsKernel\": true, \"notebookVersion\": \"[2, 21, 1]\", \"preferredPath\": \"/\", \"quitButton\": true, \"rootUri\": \"file:///workspace\", \"schemasDir\": \"/usr/local/share/jupyter/lab/schemas\", \"serverRoot\": \"/workspace\", \"settingsUrl\": \"/lab/api/settings\", \"staticDir\": \"/usr/local/share/jupyter/lab/static\", \"store_id\": 1, \"templatesDir\": \"/usr/local/share/jupyter/lab/static\", \"terminalsAvailable\": true, \"themesDir\": \"/usr/local/share/jupyter/lab/themes\", \"themesUrl\": \"/lab/api/themes\", \"token\": \"\", \"translationsApiUrl\": \"/lab/api/translations\", \"treePath\": \"\", \"treeUrl\": \"/lab/tree\", \"untracked_message_types\": [\"comm_info_request\", \"comm_info_reply\", \"kernel_info_request\", \"kernel_info_reply\", \"shutdown_request\", \"shutdown_reply\", \"interrupt_request\", \"interrupt_reply\", \"debug_request\", \"debug_reply\", \"stream\", \"display_data\", \"update_display_data\", \"execute_input\", \"execute_result\", \"error\", \"status\", \"clear_output\", \"debug_event\", \"input_request\", \"input_reply\"], \"userSettingsDir\": \"/root/.jupyter/lab/user-settings\", \"virtualDocumentsUri\": \"file:///workspace/.virtual_documents\", \"workspace\": \"default\", \"workspacesApiUrl\": \"/lab/api/workspaces\", \"workspacesDir\": \"/root/.jupyter/lab/workspaces\", \"wsUrl\": \"\"}</script>",
+              "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application."
+            },
+            {
+              "id": "54",
+              "uri": "http://host.docker.internal:50947/lab",
+              "nodeName": "http://host.docker.internal:50947/lab",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "<script id=\"jupyter-config-data\" type=\"application/json\">{\"allow_hidden_files\": false, \"appName\": \"JupyterLab\", \"appNamespace\": \"lab\", \"appSettingsDir\": \"/usr/local/share/jupyter/lab/settings\", \"appUrl\": \"/lab\", \"appVersion\": \"4.6.4\", \"baseUrl\": \"/\", \"buildAvailable\": true, \"buildCheck\": true, \"cacheFiles\": false, \"copyAbsolutePath\": false, \"delete_to_trash\": true, \"devMode\": false, \"disabledExtensions\": [], \"exposeAppInBrowser\": false, \"extensionManager\": {\"can_install\": true, \"install_path\": \"/usr/local\", \"name\": \"PyPI\"}, \"extraLabextensionsPath\": [], \"federated_extensions\": [{\"entrypoints\": null, \"extension\": \"./extension\", \"load\": \"static/remoteEntry.5cbb9d2323598fbda535.js\", \"name\": \"jupyterlab_pygments\", \"style\": \"./style\"}], \"fullAppUrl\": \"/lab\", \"fullLabextensionsUrl\": \"/lab/extensions\", \"fullLicensesUrl\": \"/lab/api/licenses\", \"fullListingsUrl\": \"/lab/api/listings\", \"fullMathjaxUrl\": \"https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js\", \"fullSettingsUrl\": \"/lab/api/settings\", \"fullStaticUrl\": \"/static/lab\", \"fullThemesUrl\": \"/lab/api/themes\", \"fullTranslationsApiUrl\": \"/lab/api/translations\", \"fullTreeUrl\": \"/lab/tree\", \"fullWorkspacesApiUrl\": \"/lab/api/workspaces\", \"ignorePlugins\": [], \"labextensionsPath\": [\"/root/.local/share/jupyter/labextensions\", \"/usr/local/share/jupyter/labextensions\", \"/usr/share/jupyter/labextensions\"], \"labextensionsUrl\": \"/lab/extensions\", \"licensesUrl\": \"/lab/api/licenses\", \"listingsUrl\": \"/lab/api/listings\", \"mathjaxConfig\": \"TeX-AMS_HTML-full,Safe\", \"mode\": \"multiple-document\", \"news\": {\"disabled\": false}, \"notebookStartsKernel\": true, \"notebookVersion\": \"[2, 21, 1]\", \"preferredPath\": \"/\", \"quitButton\": true, \"rootUri\": \"file:///workspace\", \"schemasDir\": \"/usr/local/share/jupyter/lab/schemas\", \"serverRoot\": \"/workspace\", \"settingsUrl\": \"/lab/api/settings\", \"staticDir\": \"/usr/local/share/jupyter/lab/static\", \"store_id\": 2, \"templatesDir\": \"/usr/local/share/jupyter/lab/static\", \"terminalsAvailable\": true, \"themesDir\": \"/usr/local/share/jupyter/lab/themes\", \"themesUrl\": \"/lab/api/themes\", \"token\": \"\", \"translationsApiUrl\": \"/lab/api/translations\", \"treePath\": \"\", \"treeUrl\": \"/lab/tree\", \"untracked_message_types\": [\"comm_info_request\", \"comm_info_reply\", \"kernel_info_request\", \"kernel_info_reply\", \"shutdown_request\", \"shutdown_reply\", \"interrupt_request\", \"interrupt_reply\", \"debug_request\", \"debug_reply\", \"stream\", \"display_data\", \"update_display_data\", \"execute_input\", \"execute_result\", \"error\", \"status\", \"clear_output\", \"debug_event\", \"input_request\", \"input_reply\"], \"userSettingsDir\": \"/root/.jupyter/lab/user-settings\", \"virtualDocumentsUri\": \"file:///workspace/.virtual_documents\", \"workspace\": \"default\", \"workspacesApiUrl\": \"/lab/api/workspaces\", \"workspacesDir\": \"/root/.jupyter/lab/workspaces\", \"wsUrl\": \"\"}</script>",
+              "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application."
+            },
+            {
+              "id": "42",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "<noscript>\n    <div id='noscript'>\n      Jupyter Server requires JavaScript.<br>\n      Please enable it to proceed. \n    </div>\n  </noscript>",
+              "otherinfo": "A noScript tag has been found, which is an indication that the application works differently with JavaScript enabled compared to when it is not."
+            },
+            {
+              "id": "43",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": "<noscript>\n    <div id='noscript'>\n      Jupyter Server requires JavaScript.<br>\n      Please enable it to proceed. \n    </div>\n  </noscript>",
+              "otherinfo": "A noScript tag has been found, which is an indication that the application works differently with JavaScript enabled compared to when it is not."
+            }
+          ],
+          "count": "4",
+          "systemic": false,
+          "solution": "<p>This is an informational alert and so no changes are required.</p>",
+          "otherinfo": "<p>No links have been found while there are scripts, which is an indication that this is a modern web application.</p>",
+          "reference": "",
+          "cweid": "-1",
+          "wascid": "-1",
+          "sourceid": "1"
+        },
+        {
+          "pluginid": "10112",
+          "alertRef": "10112",
+          "alert": "Session Management Response Identified",
+          "name": "Session Management Response Identified",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "desc": "<p>The given response has been identified as containing a session management token. The 'Other Info' field contains a set of header tokens that can be used in the Header Based Session Management Method. If the request is in a context which has a Session Management Method set to \"Auto-Detect\" then this rule will change the session management to use the tokens identified.</p>",
+          "instances": [
+            {
+              "id": "9",
+              "uri": "http://host.docker.internal:50947",
+              "nodeName": "http://host.docker.internal:50947",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "username-host-docker-internal-50947",
+              "otherinfo": "cookie:username-host-docker-internal-50947\ncookie:_xsrf"
+            },
+            {
+              "id": "2",
+              "uri": "http://host.docker.internal:50947/robots.txt",
+              "nodeName": "http://host.docker.internal:50947/robots.txt",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "username-host-docker-internal-50947",
+              "otherinfo": "cookie:username-host-docker-internal-50947\ncookie:_xsrf"
+            },
+            {
+              "id": "1",
+              "uri": "http://host.docker.internal:50947/sitemap.xml",
+              "nodeName": "http://host.docker.internal:50947/sitemap.xml",
+              "method": "GET",
+              "param": "username-host-docker-internal-50947",
+              "attack": "",
+              "evidence": "username-host-docker-internal-50947",
+              "otherinfo": "cookie:username-host-docker-internal-50947\ncookie:_xsrf"
+            }
+          ],
+          "count": "3",
+          "systemic": false,
+          "solution": "<p>This is an informational alert rather than a vulnerability and so there is nothing to fix.</p>",
+          "otherinfo": "<p>cookie:username-host-docker-internal-50947</p><p>cookie:_xsrf</p>",
+          "reference": "<p>https://www.zaproxy.org/docs/desktop/addons/authentication-helper/session-mgmt-id/</p>",
+          "cweid": "-1",
+          "wascid": "-1",
+          "sourceid": "1"
+        }
+      ]
+    }
+  ],
+  "sequences": []
+}

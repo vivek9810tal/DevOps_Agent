@@ -1,0 +1,9 @@
+{
+  "stage": "Containerize",
+  "status": "BUILT",
+  "project_type": "jupyter",
+  "adapter": "jupyterlab",
+  "dockerfile": ".agentic/Dockerfile.generated",
+  "image": "agentic-devsecops-9095f94d:build-1",
+  "image_id": "sha256:e25aa73b63b6a8e77ca46caf8db1627b655ba18703c5c6bfc5551aff84a31f1d"
+}

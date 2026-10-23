@@ -1,0 +1,7 @@
+{
+  "project_type": "python-source",
+  "selected_strategy": null,
+  "evidence": [
+    "no Python test files matching test_*.py or *_test.py"
+  ]
+}

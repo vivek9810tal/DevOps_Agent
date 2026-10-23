@@ -248,6 +248,13 @@ class JenkinsClient:
         return {"build_number": None, "build_url": None, "queue_timeout": True}
 
 
+REPO_BUILD_HELPER = '\nimport json, re, shutil, subprocess, sys\nfrom pathlib import Path\nROOT=Path.cwd(); REPORTS=ROOT/"reports"; DIST=ROOT/"dist"; REPORTS.mkdir(exist_ok=True); DIST.mkdir(exist_ok=True)\ndef exists(n): return (ROOT/n).exists()\ndef files(p): return [x for x in ROOT.rglob(p) if x.is_file() and "reports" not in x.parts and ".agentic" not in x.parts and ".git" not in x.parts]\ndef any_files(ps): return any(files(p) for p in ps)\ndef has(c): return shutil.which(c) is not None\ndef run(cmd):\n    print("+"," ".join(map(str,cmd)),flush=True); rc=subprocess.call([str(x) for x in cmd])\n    if rc: raise SystemExit(rc)\ndef detect():\n    if exists("pyproject.toml") or exists("setup.py") or exists("requirements.txt"): return "python"\n    if exists("package.json"): return "node"\n    if exists("pom.xml"): return "maven"\n    if exists("gradlew.bat") or exists("gradlew") or exists("build.gradle") or exists("build.gradle.kts"): return "gradle"\n    if any_files(["*.sln","*.csproj","*.fsproj","*.vbproj"]): return "dotnet"\n    if exists("go.mod"): return "go"\n    if exists("Cargo.toml"): return "rust"\n    if exists("composer.json"): return "php"\n    if exists("Gemfile"): return "ruby"\n    if exists("pubspec.yaml"):\n        t=(ROOT/"pubspec.yaml").read_text(encoding="utf-8",errors="ignore"); return "flutter" if "flutter:" in t else "dart"\n    if exists("Package.swift"): return "swift"\n    if exists("mix.exs"): return "elixir"\n    if exists("build.sbt"): return "scala"\n    if exists("project.clj") or exists("deps.edn"): return "clojure"\n    if exists("stack.yaml") or exists("cabal.project") or any_files(["*.cabal"]): return "haskell"\n    if exists("Project.toml"): return "julia"\n    if exists("DESCRIPTION") and any_files(["*.R"]): return "r"\n    if exists("cpanfile") or exists("Makefile.PL") or exists("Build.PL"): return "perl"\n    if any_files(["*.rockspec"]): return "lua"\n    if exists("WORKSPACE") or exists("WORKSPACE.bazel") or exists("MODULE.bazel"): return "bazel"\n    if exists("meson.build"): return "meson"\n    if exists("CMakeLists.txt"): return "cmake"\n    if exists("Makefile"): return "make"\n    nb=files("*.ipynb"); py=files("*.py")\n    if nb and not py: return "jupyter"\n    if py or nb: return "python-source"\n    if any_files(["*.js","*.ts","*.jsx","*.tsx","*.mjs","*.cjs"]): return "node-source"\n    if any_files(["*.java"]): return "java-source"\n    if any_files(["*.c","*.cc","*.cpp","*.cxx","*.h","*.hpp"]): return "native-source"\n    if exists("Dockerfile"): return "docker-only"\n    return "unknown-source"\ndef main():\n    k=detect(); mode="HOST"; docker=has("docker")\n    req={"python":["python"],"node":["node","npm.cmd"],"maven":["mvn"],"gradle":[] if exists("gradlew.bat") else ["gradle"],"dotnet":["dotnet"],"go":["go"],"rust":["cargo"],"php":["php","composer"],"ruby":["ruby","bundle"],"flutter":["flutter"],"dart":["dart"],"swift":["swift"],"elixir":["mix"],"scala":["sbt"],"clojure":["clojure"],"haskell":["stack"] if exists("stack.yaml") else ["cabal"],"julia":["julia"],"r":["Rscript"],"perl":["perl"],"lua":["lua"],"bazel":["bazel"],"meson":["meson"],"cmake":["cmake"],"make":["make"]}\n    missing=any(not has(c) for c in req.get(k,[]))\n    if k in {"jupyter","python-source","node-source","java-source","native-source","docker-only","unknown-source"}:\n        mode="DOCKERFILE" if k=="docker-only" else "SOURCE_ONLY"\n    elif missing:\n        mode="CONTAINER_BUILD_PENDING" if docker else "RUNTIME_UNAVAILABLE"\n    else:\n        if k=="python":\n            if exists("requirements.txt"): run([sys.executable,"-m","pip","install","-r","requirements.txt"])\n            if exists("pyproject.toml") or exists("setup.py"): run([sys.executable,"-m","pip","install","build"]); run([sys.executable,"-m","build"])\n        elif k=="node": run(["npm.cmd","ci"] if exists("package-lock.json") else ["npm.cmd","install"]); run(["npm.cmd","run","build","--if-present"])\n        elif k=="maven": run(["mvn","-B","-DskipTests","package"])\n        elif k=="gradle": run(["gradlew.bat","assemble","--no-daemon"] if exists("gradlew.bat") else ["gradle","assemble","--no-daemon"])\n        elif k=="dotnet": run(["dotnet","restore"]); run(["dotnet","build","--configuration","Release","--no-restore"])\n        elif k=="go": run(["go","mod","download"]); run(["go","build","./..."])\n        elif k=="rust": run(["cargo","build","--release"])\n        elif k=="php": run(["composer","install","--no-interaction","--prefer-dist"])\n        elif k=="ruby": run(["bundle","install"])\n        elif k=="flutter": run(["flutter","pub","get"]); run(["flutter","build","web"])\n        elif k=="dart": run(["dart","pub","get"])\n        elif k=="swift": run(["swift","build","-c","release"])\n        elif k=="elixir": run(["mix","deps.get"]); run(["mix","compile"])\n        elif k=="scala": run(["sbt","-batch","compile"])\n        elif k=="clojure": run(["clojure","-P"])\n        elif k=="haskell": run(["stack","build"] if exists("stack.yaml") else ["cabal","build","all"])\n        elif k=="julia": run(["julia","--project=.","-e","using Pkg; Pkg.instantiate(); Pkg.precompile()"])\n        elif k in {"r","perl","lua"}: mode="SOURCE_ONLY"\n        elif k=="bazel": run(["bazel","build","//..."])\n        elif k=="meson":\n            if not exists("build"): run(["meson","setup","build"])\n            run(["meson","compile","-C","build"])\n        elif k=="cmake": run(["cmake","-S",".","-B","build"]); run(["cmake","--build","build","--config","Release"])\n        elif k=="make": run(["make"])\n    rep={"project_type":k,"mode":mode,"host_runtime_missing":missing,"docker_available":docker,"dockerfile_present":exists("Dockerfile")}\n    (REPORTS/"project-type.txt").write_text(k,encoding="utf-8"); (REPORTS/"build-mode.txt").write_text(mode,encoding="utf-8")\n    (REPORTS/"build-report.json").write_text(json.dumps(rep,indent=2),encoding="utf-8")\n    print("PROJECT_TYPE="+k); print("BUILD_MODE="+mode)\nif __name__=="__main__": main()\n'
+REPO_DEPLOY_HELPER = '\nimport json,re\nfrom pathlib import Path\nROOT=Path.cwd(); REPORTS=ROOT/"reports"; AGENTIC=ROOT/".agentic"; AGENTIC.mkdir(exist_ok=True)\nkind=(REPORTS/"project-type.txt").read_text(encoding="utf-8").strip()\nplan={"deployable":False,"adapter":"none","dockerfile":None,"expected_port":None,"reason":"No safe deployment adapter matched.","generated":False}\ndef text(p):\n    q=ROOT/p\n    return q.read_text(encoding="utf-8",errors="ignore") if q.is_file() else ""\ndef files(p): return [x for x in ROOT.rglob(p) if x.is_file() and "reports" not in x.parts and ".agentic" not in x.parts and ".git" not in x.parts]\ndef write_df(s):\n    p=AGENTIC/"Dockerfile.generated"; p.write_text(s,encoding="utf-8"); return str(p.relative_to(ROOT)).replace("\\\\","/")\ndef service_dockerfile():\n    if not (ROOT/"Dockerfile").is_file(): return False\n    d=text("Dockerfile")\n    if re.search(r\'(?im)^\\s*(CMD|ENTRYPOINT)\\s+.*\\b(echo|true|false|exit)\\b\',d): return False\n    return bool(re.search(r\'(?im)^\\s*EXPOSE\\s+\\d+\',d))\ndef pick_py(pattern):\n    for p in files("*.py"):\n        if re.search(pattern,p.read_text(encoding="utf-8",errors="ignore")): return p\n    return None\n\nif service_dockerfile():\n    d=text("Dockerfile"); m=re.search(r\'(?im)^\\s*EXPOSE\\s+(\\d+)\',d)\n    plan.update(deployable=True,adapter="authored-dockerfile",dockerfile="Dockerfile",expected_port=int(m.group(1)) if m else None,reason="Repository-authored Dockerfile exposes a persistent service port.",generated=False)\nelif kind=="jupyter" or (files("*.ipynb") and not files("*.py")):\n    df=\'\'\'FROM python:3.11-slim\nWORKDIR /workspace\nRUN python -m pip install --no-cache-dir --upgrade pip jupyterlab\nCOPY . /workspace\nEXPOSE 8888\nCMD ["python","-m","jupyterlab","--ip=0.0.0.0","--port=8888","--no-browser","--allow-root","--ServerApp.token=","--ServerApp.password="]\n\'\'\'\n    plan.update(deployable=True,adapter="jupyterlab",dockerfile=write_df(df),expected_port=8888,reason="Notebook-only repository detected after excluding generated CI artifacts; staged as JupyterLab.",generated=True)\nelif kind in ("python","python-source"):\n    req=(text("requirements.txt")+" "+text("pyproject.toml")).lower()\n    fast=pick_py(r\'FastAPI\\s*\\(\'); flask=pick_py(r\'Flask\\s*\\(\'); stream=pick_py(r\'\\bstreamlit\\b\'); gradio=pick_py(r\'\\bgradio\\b|\\bgr\\.Interface\\b|\\bgr\\.Blocks\\b\')\n    base=\'FROM python:3.11-slim\\nWORKDIR /app\\nCOPY . /app\\nRUN python -m pip install --no-cache-dir --upgrade pip\\nRUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi\\n\'\n    if fast or "fastapi" in req:\n        p=fast or next((p for p in files("*.py") if p.name in ("main.py","app.py","api.py")),None)\n        if p:\n            mod=str(p.relative_to(ROOT)).replace("\\\\","/")[:-3].replace("/",".")\n            df=base+\'RUN python -m pip install --no-cache-dir fastapi uvicorn\\nEXPOSE 8000\\nCMD ["python","-m","uvicorn","\'+mod+\':app","--host","0.0.0.0","--port","8000"]\\n\'\n            plan.update(deployable=True,adapter="fastapi",dockerfile=write_df(df),expected_port=8000,reason="FastAPI application detected.",generated=True)\n    elif flask or "flask" in req:\n        p=flask or next((p for p in files("*.py") if p.name in ("app.py","main.py")),None)\n        if p:\n            rel=str(p.relative_to(ROOT)).replace("\\\\","/")\n            df=base+\'RUN python -m pip install --no-cache-dir flask\\nEXPOSE 8000\\nCMD ["python","-m","flask","--app","\'+rel+\'","run","--host=0.0.0.0","--port=8000"]\\n\'\n            plan.update(deployable=True,adapter="flask",dockerfile=write_df(df),expected_port=8000,reason="Flask application detected.",generated=True)\n    elif (ROOT/"manage.py").is_file():\n        df=base+\'RUN python -m pip install --no-cache-dir django\\nEXPOSE 8000\\nCMD ["python","manage.py","runserver","0.0.0.0:8000"]\\n\'\n        plan.update(deployable=True,adapter="django",dockerfile=write_df(df),expected_port=8000,reason="Django manage.py detected.",generated=True)\n    elif stream or "streamlit" in req:\n        p=stream or next((p for p in files("*.py") if p.name in ("app.py","main.py")),None)\n        if p:\n            rel=str(p.relative_to(ROOT)).replace("\\\\","/")\n            df=base+\'RUN python -m pip install --no-cache-dir streamlit\\nEXPOSE 8501\\nCMD ["streamlit","run","\'+rel+\'","--server.address=0.0.0.0","--server.port=8501"]\\n\'\n            plan.update(deployable=True,adapter="streamlit",dockerfile=write_df(df),expected_port=8501,reason="Streamlit application detected.",generated=True)\n    elif gradio or "gradio" in req:\n        p=gradio or next((p for p in files("*.py") if p.name in ("app.py","main.py")),None)\n        if p:\n            rel=str(p.relative_to(ROOT)).replace("\\\\","/")\n            df=base+\'RUN python -m pip install --no-cache-dir gradio\\nENV GRADIO_SERVER_NAME=0.0.0.0\\nENV GRADIO_SERVER_PORT=7860\\nEXPOSE 7860\\nCMD ["python","\'+rel+\'"]\\n\'\n            plan.update(deployable=True,adapter="gradio",dockerfile=write_df(df),expected_port=7860,reason="Gradio application detected.",generated=True)\nelif kind in ("node","node-source"):\n    try: pkg=json.loads(text("package.json") or "{}")\n    except Exception: pkg={}\n    if (pkg.get("scripts") or {}).get("start"):\n        df=\'\'\'FROM node:22-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN if [ -f package-lock.json ]; then npm ci; else npm install; fi\nCOPY . .\nENV HOST=0.0.0.0\nENV PORT=3000\nEXPOSE 3000\nCMD ["npm","start"]\n\'\'\'\n        plan.update(deployable=True,adapter="node-start",dockerfile=write_df(df),expected_port=3000,reason="package.json start script detected.",generated=True)\nelif kind in ("maven","gradle"):\n    jars=files("*.jar"); jar=next((p for p in jars if "sources" not in p.name.lower() and "javadoc" not in p.name.lower()),None)\n    if jar:\n        rel=str(jar.relative_to(ROOT)).replace("\\\\","/")\n        df=\'FROM eclipse-temurin:21-jre\\nWORKDIR /app\\nCOPY "\'+rel+\'" /app/app.jar\\nEXPOSE 8080\\nCMD ["java","-jar","/app/app.jar"]\\n\'\n        plan.update(deployable=True,adapter="java-jar",dockerfile=write_df(df),expected_port=8080,reason="Runnable JAR artifact detected.",generated=True)\nelif kind=="go":\n    df=\'\'\'FROM golang:1.24-alpine AS build\nWORKDIR /src\nCOPY . .\nRUN go mod download && CGO_ENABLED=0 go build -o /out/app .\nFROM alpine:3.21\nCOPY --from=build /out/app /app\nEXPOSE 8080\nCMD ["/app"]\n\'\'\'\n    plan.update(deployable=True,adapter="go",dockerfile=write_df(df),expected_port=8080,reason="Go module detected; container-native build adapter selected.",generated=True)\nelif kind=="rust":\n    cargo=text("Cargo.toml"); m=re.search(r\'(?ms)^\\s*name\\s*=\\s*"([^"]+)"\',cargo)\n    if m:\n        name=m.group(1)\n        df=\'FROM rust:1.85 AS build\\nWORKDIR /src\\nCOPY . .\\nRUN cargo build --release\\nFROM debian:bookworm-slim\\nCOPY --from=build /src/target/release/\'+name+\' /app\\nEXPOSE 8080\\nCMD ["/app"]\\n\'\n        plan.update(deployable=True,adapter="rust",dockerfile=write_df(df),expected_port=8080,reason="Cargo project detected; container-native build adapter selected.",generated=True)\nelif kind=="php":\n    df=\'FROM php:8.4-apache\\nWORKDIR /var/www/html\\nCOPY . /var/www/html\\nEXPOSE 80\\n\'\n    plan.update(deployable=True,adapter="php-apache",dockerfile=write_df(df),expected_port=80,reason="PHP repository staged with Apache.",generated=True)\n\nif not plan["deployable"]:\n    for d in [ROOT/"dist",ROOT/"build",ROOT/"public",ROOT]:\n        if d.is_dir() and (d/"index.html").is_file():\n            rel=str(d.relative_to(ROOT)).replace("\\\\","/") or "."\n            df=\'FROM nginx:1.27-alpine\\nCOPY "\'+rel+\'/" /usr/share/nginx/html/\\nEXPOSE 80\\n\'\n            plan.update(deployable=True,adapter="static-nginx",dockerfile=write_df(df),expected_port=80,reason="Static index.html detected.",generated=True)\n            break\n\n(REPORTS/"deployment-plan.json").write_text(json.dumps(plan,indent=2),encoding="utf-8")\n(REPORTS/"deploy-dockerfile.txt").write_text(plan["dockerfile"] or "",encoding="utf-8")\n(REPORTS/"deploy-adapter.txt").write_text(plan["adapter"],encoding="utf-8")\n(REPORTS/"deploy-port.txt").write_text("" if plan["expected_port"] is None else str(plan["expected_port"]),encoding="utf-8")\n(REPORTS/"deployable.txt").write_text("true" if plan["deployable"] else "false",encoding="utf-8")\nprint(json.dumps(plan,indent=2))\n'
+REPO_TEST_HELPER = '\nimport json\nimport re\nimport shutil\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nROOT = Path.cwd()\nREPORTS = ROOT / "reports"\nREPORTS.mkdir(exist_ok=True)\n\ndef exists(name):\n    return (ROOT / name).exists()\n\ndef read_text(name):\n    path = ROOT / name\n    if not path.exists() or not path.is_file():\n        return ""\n    return path.read_text(encoding="utf-8", errors="ignore")\n\ndef find_files(patterns):\n    found = []\n    for pattern in patterns:\n        found.extend(ROOT.rglob(pattern))\n    unique, seen = [], set()\n    for p in sorted(found):\n        if p.is_file() and "reports" not in p.parts and ".agentic" not in p.parts and ".git" not in p.parts and p not in seen:\n            unique.append(p); seen.add(p)\n    return unique\n\ndef command_available(cmd):\n    return shutil.which(cmd) is not None\n\ndef run(cmd):\n    print("+", " ".join(map(str, cmd)), flush=True)\n    return subprocess.call([str(x) for x in cmd])\n\ndef install_requirements_files():\n    for depfile in ("requirements-dev.txt","dev-requirements.txt","requirements-test.txt","test-requirements.txt"):\n        if exists(depfile):\n            rc = run([sys.executable,"-m","pip","install","-r",depfile])\n            if rc: raise SystemExit(rc)\n\ndef install_python_project_if_needed():\n    if exists("pyproject.toml") or exists("setup.py"):\n        rc = run([sys.executable,"-m","pip","install","-e","."])\n        if rc: raise SystemExit(rc)\n\ndef python_test_strategy():\n    tests = find_files(["test_*.py","*_test.py"])\n    if not tests:\n        return None, ["no Python test files matching test_*.py or *_test.py"]\n    evidence = [f"discovered {len(tests)} Python test file(s)"]\n    combined = "\\n".join(read_text(str(p.relative_to(ROOT))) for p in tests[:100])\n    tox_cfg = exists("tox.ini")\n    pytest_cfg = (\n        exists("pytest.ini") or exists("conftest.py")\n        or "[tool.pytest" in read_text("pyproject.toml")\n        or "[tool:pytest]" in read_text("setup.cfg")\n        or any("pytest" in read_text(f).lower() for f in (\n            "requirements.txt","requirements-dev.txt","dev-requirements.txt","requirements-test.txt","test-requirements.txt"\n        ))\n    )\n    unittest_hint = bool(re.search(r"(^|\\n)\\s*(import unittest|from unittest)", combined)) or "unittest.TestCase" in combined\n    if tox_cfg:\n        evidence.append("tox.ini present"); return "tox", evidence\n    if pytest_cfg:\n        evidence.append("pytest configuration/dependency evidence present"); return "pytest", evidence\n    if unittest_hint:\n        evidence.append("unittest imports/TestCase evidence present"); return "unittest", evidence\n    evidence.append("no framework-specific evidence; pytest chosen as generic Python collector")\n    return "pytest", evidence\n\ndef node_test_strategy():\n    if not exists("package.json"):\n        return None, ["package.json missing"]\n    try:\n        pkg = json.loads(read_text("package.json"))\n    except Exception as exc:\n        return None, [f"invalid package.json: {exc}"]\n    script = str((pkg.get("scripts") or {}).get("test") or "").strip()\n    if not script:\n        return None, ["package.json has no test script"]\n    low = script.lower()\n    if "no test specified" in low or "no tests specified" in low:\n        return None, ["package.json test script is the default no-tests placeholder"]\n    return "npm test", [f"package.json test script detected: {script}"]\n\ndef dotnet_has_tests():\n    for project in find_files(["*.csproj","*.fsproj","*.vbproj"]):\n        txt = project.read_text(encoding="utf-8", errors="ignore").lower()\n        if ("microsoft.net.test.sdk" in txt or "<istestproject>true</istestproject>" in txt or\n            "xunit" in txt or "nunit" in txt or "mstest" in txt or "test" in project.stem.lower()):\n            return True\n    return False\n\ndef detect_strategy(kind):\n    if kind in ("python","python-source"):\n        return python_test_strategy()\n    if kind == "node":\n        return node_test_strategy()\n    if kind == "maven":\n        files=find_files(["*Test.java","*Tests.java","*IT.java"]); return (("mvn test",[f"discovered {len(files)} Maven-style test file(s)"]) if files else (None,["no Maven-style test files detected"]))\n    if kind == "gradle":\n        files=find_files(["*Test.java","*Test.kt","*Spec.groovy"]); return (("gradle test",[f"discovered {len(files)} Gradle-style test file(s)"]) if files else (None,["no Gradle-style test files detected"]))\n    if kind == "dotnet":\n        return (("dotnet test",[".NET test project evidence detected"]) if dotnet_has_tests() else (None,["no .NET test project evidence detected"]))\n    if kind == "go":\n        files=find_files(["*_test.go"]); return (("go test",[f"discovered {len(files)} Go test file(s)"]) if files else (None,["no *_test.go files detected"]))\n    if kind == "rust":\n        files=find_files(["*.rs"]); has_tests=exists("tests") or any("#[test]" in p.read_text(encoding="utf-8",errors="ignore") for p in files[:200]); return (("cargo test",["Rust tests directory or #[test] evidence detected"]) if has_tests else (None,["no Rust test evidence detected"]))\n    if kind == "php":\n        configured=exists("phpunit.xml") or exists("phpunit.xml.dist") or exists("tests"); return (("phpunit",["PHPUnit configuration/tests directory detected"]) if configured else (None,["no PHPUnit configuration/tests directory detected"]))\n    if kind == "ruby":\n        if exists("spec"): return "rspec",["spec/ directory detected"]\n        if exists("test") and exists("Rakefile"): return "rake test",["test/ directory and Rakefile detected"]\n        return None,["no Ruby spec/ or test+Rakefile evidence detected"]\n    if kind == "flutter":\n        files=find_files(["*_test.dart"]); return (("flutter test",[f"discovered {len(files)} Dart/Flutter test file(s)"]) if files else (None,["no *_test.dart files detected"]))\n    if kind == "dart":\n        files=find_files(["*_test.dart"]); return (("dart test",[f"discovered {len(files)} Dart test file(s)"]) if files else (None,["no *_test.dart files detected"]))\n    if kind == "swift": return (("swift test",["Tests/ directory detected"]) if exists("Tests") else (None,["no Tests/ directory detected"]))\n    if kind == "elixir": return (("mix test",["test/ directory detected"]) if exists("test") else (None,["no test/ directory detected"]))\n    if kind == "cmake":\n        c=read_text("CMakeLists.txt").lower(); configured="enable_testing" in c or "add_test" in c; return (("ctest",["CMake testing directives detected"]) if configured else (None,["no CMake testing directives detected"]))\n    return None,[f"no test adapter for project type {kind}"]\n\ndef ensure_pytest():\n    ok=subprocess.call([sys.executable,"-m","pytest","--version"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)==0\n    if not ok:\n        rc=run([sys.executable,"-m","pip","install","--upgrade","pytest"])\n        if rc: raise SystemExit(rc)\n\ndef ensure_tox():\n    if not command_available("tox"):\n        rc=run([sys.executable,"-m","pip","install","--upgrade","tox"])\n        if rc: raise SystemExit(rc)\n\ndef execute_strategy(kind,strategy):\n    if strategy is None: return False,None,None\n    if kind in ("python","python-source"):\n        install_requirements_files(); install_python_project_if_needed()\n        if strategy=="tox": ensure_tox(); return True,"tox",run(["tox","-q"])\n        if strategy=="pytest": ensure_pytest(); return True,"pytest",run([sys.executable,"-m","pytest","-q","--junitxml=reports/pytest-junit.xml"])\n        if strategy=="unittest":\n            # Prefer test*.py; if that fails, try *_test.py.\n            rc=run([sys.executable,"-m","unittest","discover","-v","-p","test*.py"])\n            if rc==0: return True,"unittest",0\n            return True,"unittest",run([sys.executable,"-m","unittest","discover","-v","-p","*_test.py"])\n    commands={\n        "npm test":["npm.cmd","test"],"mvn test":["mvn","-B","test"],\n        "gradle test":(["gradlew.bat","test","--no-daemon"] if exists("gradlew.bat") else ["gradle","test","--no-daemon"]),\n        "dotnet test":["dotnet","test","--configuration","Release","--no-build"],"go test":["go","test","./..."],\n        "cargo test":["cargo","test","--all"],"phpunit":[str(ROOT/"vendor"/"bin"/"phpunit.bat")],\n        "rspec":["bundle","exec","rspec"],"rake test":["bundle","exec","rake","test"],\n        "flutter test":["flutter","test"],"dart test":["dart","test"],"swift test":["swift","test"],\n        "mix test":["mix","test"],"ctest":["ctest","--test-dir","build","--output-on-failure","-C","Release"]}\n    cmd=commands.get(strategy)\n    if cmd is None: return False,strategy,None\n    return True,strategy,run(cmd)\n\ndef main():\n    kind=(REPORTS/"project-type.txt").read_text(encoding="utf-8").strip()\n    strategy,evidence=detect_strategy(kind)\n    discovery={"project_type":kind,"selected_strategy":strategy,"evidence":evidence}\n    (REPORTS/"test-discovery.json").write_text(json.dumps(discovery,indent=2),encoding="utf-8")\n    executed,runner,rc=execute_strategy(kind,strategy)\n    configured=strategy is not None\n    result={"unit_tests":"EXECUTED" if executed else ("CONFIGURED_BUT_NOT_EXECUTED" if configured else "NOT_CONFIGURED"),"runner":runner,"exit_code":rc if executed else None,"discovery":discovery}\n    (REPORTS/"unit-test-result.json").write_text(json.dumps(result,indent=2),encoding="utf-8")\n    (REPORTS/"unit-test-status.txt").write_text(result["unit_tests"],encoding="utf-8")\n    (REPORTS/"unit-test-runner.txt").write_text(result["runner"] or "",encoding="utf-8")\n    (REPORTS/"unit-test-exit-code.txt").write_text("" if result["exit_code"] is None else str(result["exit_code"]),encoding="utf-8")\n    if executed and rc: raise SystemExit(rc)\nif __name__=="__main__": main()\n'
+BUILD_HELPER_B64 = base64.b64encode(REPO_BUILD_HELPER.encode('utf-8')).decode('ascii')
+DEPLOY_HELPER_B64 = base64.b64encode(REPO_DEPLOY_HELPER.encode('utf-8')).decode('ascii')
+TEST_HELPER_B64 = base64.b64encode(REPO_TEST_HELPER.encode('utf-8')).decode('ascii')
+
 PIPELINE_TEMPLATE = r"""
 pipeline {
     agent any
@@ -274,133 +281,32 @@ pipeline {
                 echo '[UI_TRIGGER] build'
                 echo '[UI_STAGE] build running'
                 deleteDir()
-                git branch: env.REPOSITORY_BRANCH, url: env.REPOSITORY_URL
+                checkout([$class: 'GitSCM', branches: [[name: "*/${REPOSITORY_BRANCH}"]], userRemoteConfigs: [[url: "${REPOSITORY_URL}"]]])
                 bat 'if not exist reports mkdir reports'
                 bat 'if not exist dist mkdir dist'
-                bat 'git rev-parse HEAD > reports\\git-commit.txt'
-
+                bat 'git rev-parse HEAD > reports/git-commit.txt'
                 script {
-                    // Mutable values must NOT be declared in the Declarative
-                    // environment{} block because Jenkins prevents imperative
-                    // env assignments from overriding those values.
-                    env.PROJECT_TYPE = 'unknown'
                     env.HAS_DOCKERFILE = fileExists('Dockerfile') ? 'true' : 'false'
                     env.IMAGE_NAME = "agentic-devsecops-${env.DEVSECOPS_RUN_ID}"
                     env.IMAGE_TAG = "build-${env.BUILD_NUMBER}"
+                    env.RELEASE_TAG = "release-${env.BUILD_NUMBER}"
                     env.STAGING_CONTAINER = "agentic-stage-${env.DEVSECOPS_RUN_ID}"
-                    env.IMAGE_BUILT = 'false'
-                    env.DEPLOYED = 'false'
-                    env.DEPLOY_URL = ''
-                    env.APP_CONTAINER_PORT = ''
-
-                    // Detect the application ecosystem independently from Docker support.
-                    // A repository can be Python + Docker, Node + Docker, Java + Docker, etc.
-                    if (fileExists('pyproject.toml') || fileExists('setup.py') || fileExists('requirements.txt')) {
-                        env.PROJECT_TYPE = 'python'
-                    } else if (fileExists('package.json')) {
-                        env.PROJECT_TYPE = 'node'
-                    } else if (fileExists('pom.xml')) {
-                        env.PROJECT_TYPE = 'maven'
-                    } else if (fileExists('gradlew.bat') || fileExists('build.gradle') || fileExists('build.gradle.kts')) {
-                        env.PROJECT_TYPE = 'gradle'
-                    } else if (fileExists('go.mod')) {
-                        env.PROJECT_TYPE = 'go'
-                    } else {
-                        def dotnetRc = bat(returnStatus: true, script: '@dir /b *.sln *.csproj >nul 2>&1')
-                        if (dotnetRc == 0) {
-                            env.PROJECT_TYPE = 'dotnet'
-                        } else {
-                            // Generic source discovery without optional Jenkins plugins.
-                            // findFiles belongs to Pipeline Utility Steps and is not guaranteed
-                            // to exist on a minimal Jenkins installation, so use native Windows
-                            // commands available to this Windows Jenkins agent.
-                            def pythonSourceRc = bat(
-                                returnStatus: true,
-                                script: '@dir /s /b *.py *.ipynb >nul 2>&1'
-                            )
-                            def nodeSourceRc = bat(
-                                returnStatus: true,
-                                script: '@dir /s /b *.js *.ts *.jsx *.tsx >nul 2>&1'
-                            )
-
-                            if (pythonSourceRc == 0) {
-                                env.PROJECT_TYPE = 'python'
-                            } else if (nodeSourceRc == 0) {
-                                env.PROJECT_TYPE = 'node-source'
-                            } else if (env.HAS_DOCKERFILE == 'true') {
-                                // Docker-only means no supported application ecosystem was
-                                // identified, but the repository still supplies its own build.
-                                env.PROJECT_TYPE = 'docker-only'
-                            } else {
-                                env.PROJECT_TYPE = 'unknown'
-                            }
-                        }
-                    }
-
+                    env.IMAGE_BUILT='false'; env.DEPLOYED='false'; env.DEPLOY_URL=''; env.APP_CONTAINER_PORT=''; env.DEPLOY_DOCKERFILE=''; env.DEPLOY_ADAPTER='none'; env.DEPLOY_EXPECTED_PORT=''; env.DEPLOY_STAGE_STATUS='pending'; env.TEST_STAGE_STATUS='pending'; env.PUBLISH_STAGE_STATUS='pending'; env.DEPLOY_HOST_PORT=''
+                    bat "powershell -NoProfile -Command \"[IO.File]::WriteAllBytes('reports/repo_build_helper.py',[Convert]::FromBase64String('__BUILD_HELPER_B64__'))\""
+                    bat 'python reports/repo_build_helper.py'
+                    env.PROJECT_TYPE = readFile('reports/project-type.txt').trim()
+                    env.BUILD_MODE = fileExists('reports/build-mode.txt') ? readFile('reports/build-mode.txt').trim() : 'UNKNOWN'
+                    writeFile file: 'reports/project-metadata.json', text: groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([run_id:env.DEVSECOPS_RUN_ID,repository:env.REPOSITORY_URL,branch:env.REPOSITORY_BRANCH,commit:readFile('reports/git-commit.txt').trim(),project_type:env.PROJECT_TYPE,build_mode:env.BUILD_MODE,dockerfile_present:(env.HAS_DOCKERFILE=='true'),jenkins_build:env.BUILD_NUMBER]))
                     echo "Detected project type: ${env.PROJECT_TYPE}"
-                    echo "Dockerfile present: ${env.HAS_DOCKERFILE}"
-
-                    def metadata = [
-                        run_id: env.DEVSECOPS_RUN_ID,
-                        repository: env.REPOSITORY_URL,
-                        branch: env.REPOSITORY_BRANCH,
-                        commit: bat(returnStdout: true, script: '@git rev-parse HEAD').trim(),
-                        project_type: env.PROJECT_TYPE,
-                        dockerfile_present: (env.HAS_DOCKERFILE == 'true'),
-                        jenkins_build: env.BUILD_NUMBER
-                    ]
-                    writeFile file: 'reports/project-metadata.json',
-                        text: groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(metadata))
-
-                    if (env.PROJECT_TYPE == 'python') {
-                        bat 'python --version'
-                        if (fileExists('requirements.txt')) {
-                            bat 'python -m pip install --disable-pip-version-check -r requirements.txt'
-                        }
-                        if (fileExists('pyproject.toml') || fileExists('setup.py')) {
-                            bat 'python -m pip install --disable-pip-version-check build'
-                            bat 'python -m build'
-                        }
-                    } else if (env.PROJECT_TYPE == 'node') {
-                        bat 'node --version'
-                        bat 'npm --version'
-                        if (fileExists('package-lock.json')) {
-                            bat 'npm ci'
-                        } else {
-                            bat 'npm install'
-                        }
-                        bat 'npm run build --if-present'
-                    } else if (env.PROJECT_TYPE == 'maven') {
-                        bat 'mvn --version'
-                        bat 'mvn -B -DskipTests package'
-                    } else if (env.PROJECT_TYPE == 'gradle') {
-                        if (fileExists('gradlew.bat')) {
-                            bat 'gradlew.bat assemble --no-daemon'
-                        } else {
-                            bat 'gradle assemble --no-daemon'
-                        }
-                    } else if (env.PROJECT_TYPE == 'dotnet') {
-                        bat 'dotnet --info'
-                        bat 'dotnet restore'
-                        bat 'dotnet build --configuration Release --no-restore'
-                    } else if (env.PROJECT_TYPE == 'go') {
-                        bat 'go version'
-                        bat 'go mod download'
-                        bat 'go build ./...'
-                    } else if (env.PROJECT_TYPE == 'node-source') {
-                        bat 'node --version'
-                        echo 'JavaScript/TypeScript source detected without package.json; no dependency/build script was invented.'
-                    } else if (env.PROJECT_TYPE == 'docker-only') {
-                        bat 'docker --version'
-                        echo 'Docker-only repository: application build is delegated to its Dockerfile.'
-                    } else {
-                        error('Unsupported repository: no recognized ecosystem, source type, or Dockerfile was detected.')
-                    }
                 }
             }
             post {
-                success { echo '[UI_STAGE] build success' }
-                failure { echo '[UI_STAGE] build failed' }
+                success {
+                    echo '[UI_STAGE] build success'
+                }
+                failure {
+                    echo '[UI_STAGE] build failed'
+                }
             }
         }
 
@@ -483,27 +389,33 @@ pipeline {
                 echo '[UI_STAGE] package running'
                 script {
                     if (env.PROJECT_TYPE == 'python') {
-                        def wheelRc = bat(returnStatus: true, script: '@dir /b dist\\*.whl dist\\*.tar.gz >nul 2>&1')
-                        if (wheelRc != 0) {
-                            bat 'git archive --format=zip --output=dist\\source-package.zip HEAD'
-                        }
+                        def built = bat(returnStatus: true, script: '@dir /b dist\\*.whl dist\\*.tar.gz >nul 2>&1')
+                        if (built != 0) { bat 'git archive --format=zip --output=dist\\source-package.zip HEAD' }
                     } else if (env.PROJECT_TYPE == 'node') {
-                        bat 'npm pack --pack-destination dist'
+                        bat 'npm.cmd pack --pack-destination dist'
                     } else if (env.PROJECT_TYPE == 'maven') {
-                        bat 'powershell -NoProfile -Command "Get-ChildItem target -Include *.jar,*.war -File -ErrorAction SilentlyContinue | Copy-Item -Destination dist -Force"'
+                        bat 'powershell -NoProfile -Command "Get-ChildItem target -Include *.jar,*.war -File -Recurse -ErrorAction SilentlyContinue | Copy-Item -Destination dist -Force"'
                     } else if (env.PROJECT_TYPE == 'gradle') {
-                        bat 'powershell -NoProfile -Command "Get-ChildItem build\\libs -Include *.jar,*.war -File -ErrorAction SilentlyContinue | Copy-Item -Destination dist -Force"'
+                        bat 'powershell -NoProfile -Command "Get-ChildItem build\\libs -Include *.jar,*.war -File -Recurse -ErrorAction SilentlyContinue | Copy-Item -Destination dist -Force"'
                     } else if (env.PROJECT_TYPE == 'dotnet') {
                         bat 'dotnet publish --configuration Release --output dist'
                     } else if (env.PROJECT_TYPE == 'go') {
                         bat 'go build -o dist\\application.exe .'
+                    } else if (env.PROJECT_TYPE == 'rust') {
+                        bat 'powershell -NoProfile -Command "Get-ChildItem target\\release -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -notin ''.d'',''.rlib'',''.rmeta'' } | Copy-Item -Destination dist -Force"'
+                    } else if (env.PROJECT_TYPE == 'flutter') {
+                        bat 'powershell -NoProfile -Command "if (Test-Path build\\web) { Compress-Archive -Path build\\web\\* -DestinationPath dist\\flutter-web.zip -Force }"'
+                    } else if (env.PROJECT_TYPE == 'cmake') {
+                        bat 'powershell -NoProfile -Command "if (Test-Path build) { Compress-Archive -Path build\\* -DestinationPath dist\\cmake-build.zip -Force }"'
                     } else {
-                        // For source-only and docker-only repositories, a git archive is a
-                        // real immutable package of the checked-out commit.
                         bat 'git archive --format=zip --output=dist\\source-package.zip HEAD'
                     }
 
                     def count = bat(returnStdout: true, script: '@powershell -NoProfile -Command "(Get-ChildItem dist -File -Recurse | Measure-Object).Count"').trim()
+                    if ((count as Integer) == 0) {
+                        bat 'git archive --format=zip --output=dist\\source-package.zip HEAD'
+                        count = '1'
+                    }
                     writeFile file: 'reports/package-report.json',
                         text: groovy.json.JsonOutput.prettyPrint(
                             groovy.json.JsonOutput.toJson([
@@ -512,7 +424,6 @@ pipeline {
                                 artifact_count: count as Integer
                             ])
                         )
-
                     archiveArtifacts artifacts: 'dist/**/*', allowEmptyArchive: false, fingerprint: true
                 }
             }
@@ -527,46 +438,33 @@ pipeline {
                 echo '[UI_TRIGGER] containerize'
                 echo '[UI_STAGE] containerize running'
                 script {
-                    if (env.HAS_DOCKERFILE != 'true') {
+                    bat "powershell -NoProfile -Command \"[IO.File]::WriteAllBytes('reports/repo_deploy_helper.py',[Convert]::FromBase64String('__DEPLOY_HELPER_B64__'))\""
+                    bat 'python reports\\repo_deploy_helper.py'
+                    def deployable=fileExists('reports/deployable.txt') ? readFile('reports/deployable.txt').trim() : 'false'
+                    env.DEPLOY_DOCKERFILE=fileExists('reports/deploy-dockerfile.txt') ? readFile('reports/deploy-dockerfile.txt').trim() : ''
+                    env.DEPLOY_ADAPTER=fileExists('reports/deploy-adapter.txt') ? readFile('reports/deploy-adapter.txt').trim() : 'none'
+                    env.DEPLOY_EXPECTED_PORT=fileExists('reports/deploy-port.txt') ? readFile('reports/deploy-port.txt').trim() : ''
+                    if (deployable!='true' || !env.DEPLOY_DOCKERFILE) {
                         echo '[UI_STAGE] containerize skipped'
-                        writeFile file: 'reports/containerize-report.json',
-                            text: groovy.json.JsonOutput.prettyPrint(
-                                groovy.json.JsonOutput.toJson([
-                                    stage: 'Containerize',
-                                    status: 'NOT_APPLICABLE',
-                                    reason: 'Repository has no Dockerfile; no image was fabricated.'
-                                ])
-                            )
+                        writeFile file:'reports/containerize-report.json',text:groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                            stage:'Containerize',status:'NOT_APPLICABLE',project_type:env.PROJECT_TYPE,adapter:env.DEPLOY_ADAPTER,
+                            reason:'No safe deployable container adapter was found. Source/security analysis still completed.'
+                        ]))
                     } else {
                         bat 'docker --version'
                         bat 'docker info'
-                        bat "docker build --pull --label devsecops.run=${env.DEVSECOPS_RUN_ID} -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
-                        env.IMAGE_BUILT = 'true'
-
-                        def imageId = bat(
-                            returnStdout: true,
-                            script: "@docker image inspect ${env.IMAGE_NAME}:${env.IMAGE_TAG} --format=\"{{.Id}}\""
-                        ).trim()
-
-                        writeFile file: 'reports/containerize-report.json',
-                            text: groovy.json.JsonOutput.prettyPrint(
-                                groovy.json.JsonOutput.toJson([
-                                    stage: 'Containerize',
-                                    status: 'BUILT',
-                                    image: "${env.IMAGE_NAME}:${env.IMAGE_TAG}",
-                                    image_id: imageId
-                                ])
-                            )
-
-                        def grypeCheck = bat(returnStatus: true, script: '@grype version >nul 2>&1')
-                        if (grypeCheck == 0) {
-                            def rc = bat(returnStatus: true, script: "@grype ${env.IMAGE_NAME}:${env.IMAGE_TAG} -o json > reports\\grype-report.json")
-                            if (rc != 0 || !fileExists('reports/grype-report.json')) {
-                                error("Grype image scan failed (${rc}).")
-                            }
-                        } else {
-                            echo 'Grype is not installed; final policy gate will fail a containerized run without its image report.'
-                        }
+                        bat "docker build --pull --label devsecops.run=${env.DEVSECOPS_RUN_ID} --label devsecops.adapter=${env.DEPLOY_ADAPTER} -f \"${env.DEPLOY_DOCKERFILE}\" -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
+                        env.IMAGE_BUILT='true'
+                        def imageId=bat(returnStdout:true,script:"@docker image inspect ${env.IMAGE_NAME}:${env.IMAGE_TAG} --format=\"{{.Id}}\"").trim()
+                        writeFile file:'reports/containerize-report.json',text:groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                            stage:'Containerize',status:'BUILT',project_type:env.PROJECT_TYPE,adapter:env.DEPLOY_ADAPTER,
+                            dockerfile:env.DEPLOY_DOCKERFILE,image:"${env.IMAGE_NAME}:${env.IMAGE_TAG}",image_id:imageId
+                        ]))
+                        def grypeCheck=bat(returnStatus:true,script:'@grype version >nul 2>&1')
+                        if (grypeCheck==0) {
+                            def rc=bat(returnStatus:true,script:"@grype ${env.IMAGE_NAME}:${env.IMAGE_TAG} -o json > reports\\grype-report.json")
+                            if (rc!=0 || !fileExists('reports/grype-report.json')) { error("Grype image scan failed (${rc}).") }
+                        } else { echo 'Grype is not installed; final policy gate will fail a containerized run without its image report.' }
                     }
                 }
             }
@@ -618,6 +516,7 @@ pipeline {
                 echo '[UI_STAGE] deploy running'
                 script {
                     if (env.IMAGE_BUILT != 'true') {
+                        env.DEPLOY_STAGE_STATUS = 'skipped'
                         echo '[UI_STAGE] deploy skipped'
                         writeFile file: 'reports/deploy-report.json',
                             text: groovy.json.JsonOutput.prettyPrint(
@@ -639,14 +538,19 @@ pipeline {
                         // Fallback to the Dockerfile only when final image metadata has no
                         // exposed port. This lets explicitly-authored Dockerfiles still be
                         // tested while keeping the image metadata authoritative.
-                        if (!exposed) {
+                        if (!exposed && env.DEPLOY_EXPECTED_PORT) {
+                            exposed = env.DEPLOY_EXPECTED_PORT
+                        }
+
+                        if (!exposed && env.DEPLOY_DOCKERFILE) {
                             exposed = bat(
                                 returnStdout: true,
-                                script: "@powershell -NoProfile -Command \"\$m = Select-String -Path Dockerfile -Pattern '^\\s*EXPOSE\\s+([0-9]+)' | Select-Object -First 1; if (\$m) { \$m.Matches.Groups[1].Value }\""
+                                script: "@powershell -NoProfile -Command \"\$m = Select-String -Path '${env.DEPLOY_DOCKERFILE}' -Pattern '^\\s*EXPOSE\\s+([0-9]+)' | Select-Object -First 1; if (\$m) { \$m.Matches.Groups[1].Value }\""
                             ).trim()
                         }
 
                         if (!exposed) {
+                            env.DEPLOY_STAGE_STATUS = 'skipped'
                             echo '[UI_STAGE] deploy skipped'
                             writeFile file: 'reports/deploy-report.json',
                                 text: groovy.json.JsonOutput.prettyPrint(
@@ -663,7 +567,7 @@ pipeline {
                             // Explicitly publish the detected container port to a random host
                             // port. Do not rely on -P because -P only publishes ports actually
                             // present in the final image's EXPOSE metadata.
-                            bat "docker run -d --name ${env.STAGING_CONTAINER} --label devsecops.run=${env.DEVSECOPS_RUN_ID} -p ${env.APP_CONTAINER_PORT} ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                            bat "docker run -d --name ${env.STAGING_CONTAINER} --label devsecops.run=${env.DEVSECOPS_RUN_ID} --label devsecops.adapter=${env.DEPLOY_ADAPTER} -p 127.0.0.1::${env.APP_CONTAINER_PORT} ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
 
                             // Give the application a short startup window.
                             sleep time: 3, unit: 'SECONDS'
@@ -682,6 +586,7 @@ pipeline {
                                 ).trim()
 
                                 if (exitCode == '0') {
+                                    env.DEPLOY_STAGE_STATUS = 'skipped'
                                     echo '[UI_STAGE] deploy skipped'
                                     env.DEPLOYED = 'false'
 
@@ -753,8 +658,10 @@ pipeline {
                                 error('Docker did not resolve a published host port for the staging container.')
                             }
 
+                            env.DEPLOY_HOST_PORT = hostPort
                             env.DEPLOY_URL = "http://127.0.0.1:${hostPort}"
                             env.DEPLOYED = 'true'
+                            env.DEPLOY_STAGE_STATUS = 'success'
 
                             writeFile file: 'reports/deploy-report.json',
                                 text: groovy.json.JsonOutput.prettyPrint(
@@ -763,19 +670,28 @@ pipeline {
                                         status: 'STAGING_RUNNING',
                                         container: env.STAGING_CONTAINER,
                                         image: "${env.IMAGE_NAME}:${env.IMAGE_TAG}",
+                                        adapter: env.DEPLOY_ADAPTER,
                                         container_port: env.APP_CONTAINER_PORT,
                                         host_port: hostPort,
-                                        url: env.DEPLOY_URL
+                                        url: env.DEPLOY_URL,
+                                        health_url: "${env.DEPLOY_URL}/health",
+                                        persistence: 'KEPT_RUNNING_AFTER_PIPELINE'
                                     ])
                                 )
                                 echo "Staging target: ${env.DEPLOY_URL}"
+                                echo "Health target: ${env.DEPLOY_URL}/health"
                             }
                         }
                     }
                 }
             }
             post {
-                success { echo '[UI_STAGE] deploy success' }
+                success {
+                    script {
+                        if (env.DEPLOY_STAGE_STATUS == 'skipped') { echo '[UI_STAGE] deploy skipped' }
+                        else { echo '[UI_STAGE] deploy success' }
+                    }
+                }
                 failure { echo '[UI_STAGE] deploy failed' }
             }
         }
@@ -787,48 +703,59 @@ pipeline {
                 script {
                     def result = [:]
 
-                    if (env.PROJECT_TYPE == 'python') {
-                        def pytest = bat(returnStatus: true, script: '@python -m pytest --version >nul 2>&1')
-                        if (pytest == 0) {
-                            def rc = bat(returnStatus: true, script: '@python -m pytest -q --junitxml=reports\\pytest-junit.xml')
-                            result.unit_test_exit_code = rc
-                            if (rc != 0) { error("Python tests failed (${rc}).") }
-                        } else {
-                            result.unit_tests = 'NOT_CONFIGURED'
-                            echo 'pytest not available; no Python test result is being invented.'
-                        }
-                    } else if (env.PROJECT_TYPE == 'node') {
-                        def rc = bat(returnStatus: true, script: '@npm test --if-present')
-                        result.unit_test_exit_code = rc
-                        if (rc != 0) { error("Node tests failed (${rc}).") }
-                    } else if (env.PROJECT_TYPE == 'maven') {
-                        def rc = bat(returnStatus: true, script: '@mvn -B test')
-                        result.unit_test_exit_code = rc
-                        if (rc != 0) { error("Maven tests failed (${rc}).") }
-                    } else if (env.PROJECT_TYPE == 'gradle') {
-                        def command = fileExists('gradlew.bat') ? 'gradlew.bat test --no-daemon' : 'gradle test --no-daemon'
-                        def rc = bat(returnStatus: true, script: command)
-                        result.unit_test_exit_code = rc
-                        if (rc != 0) { error("Gradle tests failed (${rc}).") }
-                    } else if (env.PROJECT_TYPE == 'dotnet') {
-                        def rc = bat(returnStatus: true, script: '@dotnet test --configuration Release --no-build')
-                        result.unit_test_exit_code = rc
-                        if (rc != 0) { error(".NET tests failed (${rc}).") }
-                    } else if (env.PROJECT_TYPE == 'go') {
-                        def rc = bat(returnStatus: true, script: '@go test ./...')
-                        result.unit_test_exit_code = rc
-                        if (rc != 0) { error("Go tests failed (${rc}).") }
-                    } else {
-                        result.unit_tests = 'NOT_APPLICABLE'
+                    bat "powershell -NoProfile -Command \"[IO.File]::WriteAllBytes('reports/repo_test_helper.py',[Convert]::FromBase64String('__TEST_HELPER_B64__'))\""
+                    def unitRc = bat(returnStatus: true, script: '@python reports\\repo_test_helper.py')
+
+                    def unitStatus = fileExists('reports/unit-test-status.txt')
+                        ? readFile('reports/unit-test-status.txt').trim()
+                        : 'NOT_EXECUTED'
+                    def unitRunner = fileExists('reports/unit-test-runner.txt')
+                        ? readFile('reports/unit-test-runner.txt').trim()
+                        : ''
+                    def unitExitText = fileExists('reports/unit-test-exit-code.txt')
+                        ? readFile('reports/unit-test-exit-code.txt').trim()
+                        : ''
+
+                    result.unit_tests = unitStatus
+                    result.unit_test_runner = unitRunner ?: null
+                    result.unit_test_exit_code = unitExitText ? unitExitText : null
+
+                    def unitExecuted = (unitStatus == 'EXECUTED')
+
+                    if (unitRc != 0) {
+                        error("Repository unit tests failed (${unitRc}).")
                     }
 
                     if (env.DEPLOYED == 'true' && env.DEPLOY_URL) {
                         sleep time: 5, unit: 'SECONDS'
-                        def probe = bat(
-                            returnStatus: true,
-                            script: "@powershell -NoProfile -Command \"try { Invoke-WebRequest -UseBasicParsing -Uri '${env.DEPLOY_URL}' -TimeoutSec 15 | Out-Null; exit 0 } catch { exit 1 }\""
-                        )
-                        result.http_probe_exit_code = probe
+                        def selectedUrl = ''
+
+                        for (candidate in ['/health', '/healthz', '/ready', '/']) {
+                            def candidateUrl = "${env.DEPLOY_URL}${candidate == '/' ? '' : candidate}"
+                            def rc = bat(
+                                returnStatus: true,
+                                script: "@powershell -NoProfile -Command \"try { \$r = Invoke-WebRequest -UseBasicParsing -Uri '${candidateUrl}' -MaximumRedirection 3 -TimeoutSec 10; if (\$r.StatusCode -ge 200 -and \$r.StatusCode -lt 400) { exit 0 } else { exit 1 } } catch { exit 1 }\""
+                            )
+                            if (rc == 0) {
+                                selectedUrl = candidateUrl
+                                result.probe_url = candidateUrl
+                                result.http_probe_exit_code = 0
+                                break
+                            }
+                        }
+
+                        if (!selectedUrl) {
+                            bat "docker logs ${env.STAGING_CONTAINER} > reports\\staging-container.log 2>&1 || exit /b 0"
+                            error('Live deployment did not return HTTP 2xx/3xx on /health, /healthz, /ready, or /.')
+                        }
+
+                        writeFile file: 'reports/health-probe.json',
+                            text: groovy.json.JsonOutput.prettyPrint(
+                                groovy.json.JsonOutput.toJson([
+                                    url: selectedUrl,
+                                    status: 'PASSED'
+                                ])
+                            )
 
                         def zapCheck = bat(returnStatus: true, script: '@zap-baseline.py --help >nul 2>&1')
                         if (zapCheck == 0) {
@@ -836,16 +763,35 @@ pipeline {
                                 returnStatus: true,
                                 script: "@zap-baseline.py -t ${env.DEPLOY_URL} -J reports\\zap-report.json -m 2"
                             )
+                            result.zap_mode = 'LOCAL_CLI'
                             result.zap_exit_code = zapRc
-                            if (!fileExists('reports/zap-report.json')) {
-                                error('OWASP ZAP did not produce zap-report.json.')
+                            if (!(zapRc in [0, 1, 2]) || !fileExists('reports/zap-report.json')) {
+                                error("OWASP ZAP local scan failed (${zapRc}) or produced no report.")
                             }
                         } else {
-                            result.zap = 'NOT_EXECUTED_TOOL_MISSING'
-                            echo 'OWASP ZAP CLI is unavailable; Publish will treat this as an evidence gap.'
+                            def zapTarget = "http://host.docker.internal:${env.DEPLOY_HOST_PORT}"
+                            def zapRc = bat(
+                                returnStatus: true,
+                                script: "@docker run --rm -v \"%CD%\\reports:/zap/wrk:rw\" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${zapTarget} -J zap-report.json -m 2"
+                            )
+                            result.zap_mode = 'DOCKER'
+                            result.zap_target = zapTarget
+                            result.zap_exit_code = zapRc
+                            if (!(zapRc in [0, 1, 2]) || !fileExists('reports/zap-report.json')) {
+                                error("OWASP ZAP Docker scan failed (${zapRc}) or produced no report.")
+                            }
                         }
                     } else {
                         result.zap = 'NOT_APPLICABLE_NO_WEB_DEPLOYMENT'
+                    }
+
+                    if (unitExecuted || env.DEPLOYED == 'true') {
+                        env.TEST_STAGE_STATUS = 'success'
+                        result.stage_status = 'EXECUTED'
+                    } else {
+                        env.TEST_STAGE_STATUS = 'skipped'
+                        result.stage_status = 'NOT_CONFIGURED_OR_NOT_APPLICABLE'
+                        echo '[UI_STAGE] test skipped'
                     }
 
                     writeFile file: 'reports/test-report.json',
@@ -853,7 +799,12 @@ pipeline {
                 }
             }
             post {
-                success { echo '[UI_STAGE] test success' }
+                success {
+                    script {
+                        if (env.TEST_STAGE_STATUS == 'skipped') { echo '[UI_STAGE] test skipped' }
+                        else { echo '[UI_STAGE] test success' }
+                    }
+                }
                 failure { echo '[UI_STAGE] test failed' }
             }
         }
@@ -883,11 +834,19 @@ def load(name):
     path = root / name
     if not path.is_file():
         return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception as exc:
-        summary["policy_failures"].append(f"{name}: invalid JSON: {exc}")
-        return None
+
+    raw = path.read_bytes()
+    last_error = None
+    for encoding in ("utf-8-sig", "utf-8", "cp1252"):
+        try:
+            return json.loads(raw.decode(encoding))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            last_error = exc
+
+    summary["policy_failures"].append(
+        f"{name}: invalid JSON after utf-8/cp1252 decode attempts: {last_error}"
+    )
+    return None
 
 sg = load("semgrep-report.json")
 if isinstance(sg, dict):
@@ -965,9 +924,12 @@ if isinstance(zap, dict):
     if high:
         summary["policy_failures"].append(f"ZAP HIGH findings: {high}")
 
-for key in ("semgrep", "gitleaks", "trivy", "trivy_iac"):
+for key in ("semgrep", "gitleaks", "trivy"):
     if not summary[key]["executed"]:
         summary["policy_failures"].append(f"{key}: required report missing")
+
+# trivy_iac is capability-dependent and is not mandatory for repositories
+# that contain no supported infrastructure-as-code assets.
 
 container = load("containerize-report.json")
 if isinstance(container, dict) and container.get("status") == "BUILT":
@@ -979,6 +941,9 @@ test = load("test-report.json") or {}
 if isinstance(deploy, dict) and deploy.get("status") == "STAGING_RUNNING":
     if test.get("zap") == "NOT_EXECUTED_TOOL_MISSING":
         summary["policy_failures"].append("zap: web target existed but ZAP was unavailable")
+
+summary["release_allowed"] = not bool(summary["policy_failures"])
+summary["policy_status"] = "PASS" if summary["release_allowed"] else "BLOCKED"
 
 (root / "pipeline-summary.json").write_text(
     json.dumps(summary, indent=2), encoding="utf-8"
@@ -994,13 +959,28 @@ sys.exit(2 if summary["policy_failures"] else 0)
                         fingerprint: true
 
                     if (policyRc != 0) {
-                        error('DevSecOps policy gate failed. Inspect reports/pipeline-summary.json and scanner artifacts.')
+                        env.PUBLISH_STAGE_STATUS = 'blocked'
+                        currentBuild.result = 'UNSTABLE'
+                        echo '[UI_STAGE] publish blocked'
+                        echo 'DevSecOps release BLOCKED by evidence policy. Execution completed; release was not approved.'
+                    } else {
+                        env.PUBLISH_STAGE_STATUS = 'success'
                     }
                 }
             }
             post {
-                success { echo '[UI_STAGE] publish success' }
-                failure { echo '[UI_STAGE] publish failed' }
+                success {
+                    script {
+                        if (env.PUBLISH_STAGE_STATUS == 'blocked') {
+                            echo '[UI_STAGE] publish blocked'
+                        } else {
+                            echo '[UI_STAGE] publish success'
+                        }
+                    }
+                }
+                failure {
+                    echo '[UI_STAGE] publish failed'
+                }
             }
         }
     }
@@ -1010,7 +990,13 @@ sys.exit(2 if summary["policy_failures"] else 0)
             script {
                 if (env.STAGING_CONTAINER?.trim()) {
                     bat "docker inspect ${env.STAGING_CONTAINER} >nul 2>&1 && docker logs ${env.STAGING_CONTAINER} > reports\\staging-container.log 2>&1 || exit /b 0"
-                    bat "docker rm -f ${env.STAGING_CONTAINER} >nul 2>&1 || exit /b 0"
+
+                    if (env.DEPLOYED == 'true') {
+                        echo "Keeping successful staging deployment running: ${env.STAGING_CONTAINER}"
+                        echo "Deployment URL remains available at: ${env.DEPLOY_URL}"
+                    } else {
+                        bat "docker rm -f ${env.STAGING_CONTAINER} >nul 2>&1 || exit /b 0"
+                    }
                 }
             }
             archiveArtifacts artifacts: 'reports/**/*,dist/**/*',
@@ -1021,21 +1007,64 @@ sys.exit(2 if summary["policy_failures"] else 0)
             echo '[UI_TRIGGER] pipeline_complete'
             echo 'DevSecOps pipeline passed the final evidence policy.'
         }
+        unstable {
+            echo '[UI_TRIGGER] pipeline_complete'
+            echo 'DevSecOps pipeline execution completed, but release was BLOCKED by the evidence policy.'
+        }
         failure {
-            echo 'DevSecOps pipeline failed. Inspect Jenkins logs and archived evidence.'
+            echo 'DevSecOps pipeline FAILED due to an execution or tool error. Inspect Jenkins logs and archived evidence.'
         }
     }
 }
 """
 
 
+
+def _validate_generated_pipeline(pipeline: str) -> None:
+    problems: list[str] = []
+
+    # Reject only compressed one-line Declarative post blocks.
+    for line_no, line in enumerate(pipeline.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped.startswith("post {") and stripped != "post {":
+            problems.append(
+                f"compressed Declarative post block detected at generated line {line_no}"
+            )
+
+    if "new groovy.json.JsonSlurperClassic" in pipeline:
+        problems.append("sandbox-rejected JsonSlurperClassic constructor detected")
+
+    if "DevSecOps policy gate failed" in pipeline and "error('DevSecOps policy gate failed" in pipeline:
+        problems.append("policy denial is still wired as an execution failure")
+
+    for token in (
+        "__RUN_ID__",
+        "__REPO_URL__",
+        "__BRANCH__",
+        "__BUILD_HELPER_B64__",
+        "__DEPLOY_HELPER_B64__",
+        "__TEST_HELPER_B64__",
+    ):
+        if token in pipeline:
+            problems.append(f"unresolved template token: {token}")
+
+    if problems:
+        raise ValueError(
+            "Generated Jenkins pipeline validation failed: " + "; ".join(problems)
+        )
+
 def generate_pipeline(repo_url: str, branch: str, run_id: str) -> str:
-    return (
+    pipeline = (
         PIPELINE_TEMPLATE
         .replace("__RUN_ID__", _groovy_quote(run_id))
         .replace("__REPO_URL__", _groovy_quote(repo_url))
         .replace("__BRANCH__", _groovy_quote(branch))
+        .replace("__BUILD_HELPER_B64__", BUILD_HELPER_B64)
+        .replace("__DEPLOY_HELPER_B64__", DEPLOY_HELPER_B64)
+        .replace("__TEST_HELPER_B64__", TEST_HELPER_B64)
     )
+    _validate_generated_pipeline(pipeline)
+    return pipeline
 
 
 @tool

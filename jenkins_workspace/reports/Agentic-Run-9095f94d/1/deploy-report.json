@@ -1,0 +1,12 @@
+{
+  "stage": "Deploy",
+  "status": "STAGING_RUNNING",
+  "container": "agentic-stage-9095f94d",
+  "image": "agentic-devsecops-9095f94d:build-1",
+  "adapter": "jupyterlab",
+  "container_port": "8888",
+  "host_port": "50947",
+  "url": "http://127.0.0.1:50947",
+  "health_url": "http://127.0.0.1:50947/health",
+  "persistence": "KEPT_RUNNING_AFTER_PIPELINE"
+}

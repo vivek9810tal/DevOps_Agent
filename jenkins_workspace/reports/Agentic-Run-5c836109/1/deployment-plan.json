@@ -1,0 +1,8 @@
+{
+  "deployable": true,
+  "adapter": "streamlit",
+  "dockerfile": ".agentic/Dockerfile.generated",
+  "expected_port": 8501,
+  "reason": "Streamlit application detected.",
+  "generated": true
+}

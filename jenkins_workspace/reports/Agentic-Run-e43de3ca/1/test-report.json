@@ -1,0 +1,7 @@
+{
+  "unit_tests": "NOT_CONFIGURED",
+  "unit_test_runner": null,
+  "unit_test_exit_code": null,
+  "zap": "NOT_APPLICABLE_NO_WEB_DEPLOYMENT",
+  "stage_status": "NOT_CONFIGURED_OR_NOT_APPLICABLE"
+}

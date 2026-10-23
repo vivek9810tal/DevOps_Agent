@@ -1,0 +1,16 @@
+{
+  "decision": "FAIL",
+  "blocking_findings": [
+    "Semgrep ERROR findings: 1",
+    "Grype CRITICAL findings: 2",
+    "ZAP HIGH findings: 1"
+  ],
+  "missing_evidence": [
+    "Access to the repository to determine the presence of a Dockerfile, IaC files, and web application characteristics.",
+    "Successful retrieval of repository inventory to identify primary and secondary ecosystems.",
+    "Confirmation of a real image for Grype and a reachable web deployment for ZAP."
+  ],
+  "non_blocking_findings": [],
+  "release_allowed": false,
+  "rationale": "The decision to FAIL is based on the presence of blocking findings in the security scans. Specifically, the Grype scan identified 2 critical vulnerabilities, and the ZAP scan found 1 high-severity issue. Additionally, there is an error finding in the Semgrep scan. These findings are considered blocking as they pose significant security risks that must be addressed before proceeding with a release. Furthermore, the inability to access the repository inventory due to an HTTP Error 401: Unauthorized limits the ability to fully assess the repository's characteristics and potential vulnerabilities, further supporting the decision to fail the release."
+}

@@ -4,7 +4,7 @@ Key properties:
 - Streams the exact unique Jenkins job/build created for the request.
 - Reads progressive Jenkins console output.
 - Emits exact stage lifecycle events from [UI_STAGE] markers:
-  running | success | failed | skipped.
+  running | success | failed | skipped | blocked.
 - Downloads genuine archived scanner artifacts into a per-run directory.
 - Never converts a missing report into "0 findings".
 - Exposes both per-run report summaries and a convenience latest-run endpoint.
@@ -55,10 +55,14 @@ STAGE_NAMES = {
     "publish": "Publish",
 }
 
-STAGE_STATUSES = {"running", "success", "failed", "skipped"}
+STAGE_STATUSES = {"running", "success", "failed", "skipped", "blocked"}
 
 REPORT_NAMES = (
     "project-metadata.json",
+    "build-report.json",
+    "deployment-plan.json",
+    "test-discovery.json",
+    "unit-test-result.json",
     "scan-execution.json",
     "semgrep-report.json",
     "gitleaks-report.json",
@@ -246,7 +250,21 @@ def _download_artifacts(
 
         try:
             data, _ = _jenkins_get(url, timeout=10)
-            parsed = json.loads(data.decode("utf-8"))
+
+            parsed = None
+            decode_error = None
+            for encoding in ("utf-8-sig", "utf-8", "cp1252"):
+                try:
+                    parsed = json.loads(data.decode(encoding))
+                    break
+                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    decode_error = exc
+
+            if parsed is None:
+                raise ValueError(
+                    f"Could not decode {report_name} as JSON using utf-8/cp1252: {decode_error}"
+                )
+
             (run_dir / report_name).write_text(
                 json.dumps(parsed, indent=2),
                 encoding="utf-8",
@@ -268,6 +286,7 @@ def _download_artifacts(
             OSError,
             UnicodeDecodeError,
             json.JSONDecodeError,
+            ValueError,
         ) as exc:
             logger.warning(
                 "Could not persist report artifact %s: %s",
@@ -658,11 +677,39 @@ async def _stream_jenkins(
                     message=f"Policy / Release Agent warning: {exc}",
                 )
 
-            if result == "SUCCESS":
+            policy_summary = report_summary.get("policy") if isinstance(report_summary, dict) else None
+            policy_failures = (
+                policy_summary.get("policy_failures") or []
+                if isinstance(policy_summary, dict)
+                else []
+            )
+            release_allowed = not bool(policy_failures)
+
+            if result == "SUCCESS" and release_allowed:
                 yield _event(
                     "pipeline_complete",
                     status="success",
                     result=result,
+                    release_allowed=True,
+                    policy_failures=[],
+                    job_name=job_name,
+                    build_number=build_number,
+                    build_url=build_url,
+                    artifacts=artifact_availability,
+                )
+            elif result in {"UNSTABLE", "SUCCESS"} and not release_allowed:
+                # Jenkins execution completed, but the evidence policy denied release.
+                # This is a policy BLOCK, not an execution failure.
+                yield _event(
+                    "pipeline_complete",
+                    status="blocked",
+                    result=result,
+                    release_allowed=False,
+                    policy_failures=policy_failures,
+                    message=(
+                        "Pipeline execution completed, but release was blocked "
+                        "by the DevSecOps evidence policy."
+                    ),
                     job_name=job_name,
                     build_number=build_number,
                     build_url=build_url,
@@ -676,6 +723,7 @@ async def _stream_jenkins(
                         f"with result: {result}."
                     ),
                     result=result,
+                    release_allowed=False,
                     job_name=job_name,
                     build_number=build_number,
                     build_url=build_url,

@@ -52,3 +52,7 @@ input:disabled {
     font-size: 16px;
   }
 }
+
+
+/* First-class policy-blocked state. */
+.policy-blocked { border-color: rgba(245,158,11,.75); background: rgba(120,53,15,.18); color: rgb(253 230 138); }

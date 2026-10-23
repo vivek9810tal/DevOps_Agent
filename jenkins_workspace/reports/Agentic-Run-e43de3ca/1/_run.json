@@ -1,0 +1,20 @@
+{
+  "job_name": "Agentic-Run-e43de3ca",
+  "build_number": 1,
+  "jenkins_url": "http://localhost:8080",
+  "artifacts": {
+    "project-metadata.json": true,
+    "scan-execution.json": true,
+    "semgrep-report.json": true,
+    "gitleaks-report.json": true,
+    "trivy-report.json": true,
+    "trivy-iac-report.json": true,
+    "grype-report.json": true,
+    "containerize-report.json": true,
+    "release-report.json": true,
+    "deploy-report.json": true,
+    "test-report.json": true,
+    "zap-report.json": false,
+    "pipeline-summary.json": true
+  }
+}

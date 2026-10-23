@@ -1,0 +1,38 @@
+{
+  "semgrep": {
+    "executed": true,
+    "findings": 1,
+    "error_severity": 1
+  },
+  "gitleaks": {
+    "executed": true,
+    "findings": 0
+  },
+  "trivy": {
+    "executed": true,
+    "critical": 0,
+    "high": 0
+  },
+  "trivy_iac": {
+    "executed": true,
+    "critical": 0,
+    "high": 1
+  },
+  "grype": {
+    "executed": true,
+    "critical": 2,
+    "high": 75
+  },
+  "zap": {
+    "executed": true,
+    "high": 1,
+    "medium": 10
+  },
+  "policy_failures": [
+    "Semgrep ERROR findings: 1",
+    "Grype CRITICAL findings: 2",
+    "ZAP HIGH findings: 1"
+  ],
+  "release_allowed": false,
+  "policy_status": "BLOCKED"
+}

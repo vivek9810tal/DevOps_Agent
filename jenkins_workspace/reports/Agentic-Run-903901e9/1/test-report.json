@@ -1,0 +1,11 @@
+{
+  "unit_tests": "EXECUTED",
+  "unit_test_runner": "pytest",
+  "unit_test_exit_code": "0",
+  "probe_url": "http://127.0.0.1:58653",
+  "http_probe_exit_code": 0,
+  "zap_mode": "DOCKER",
+  "zap_target": "http://host.docker.internal:58653",
+  "zap_exit_code": 2,
+  "stage_status": "EXECUTED"
+}

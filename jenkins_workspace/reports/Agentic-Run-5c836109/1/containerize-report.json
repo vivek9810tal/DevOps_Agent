@@ -1,0 +1,9 @@
+{
+  "stage": "Containerize",
+  "status": "BUILT",
+  "project_type": "python-source",
+  "adapter": "streamlit",
+  "dockerfile": ".agentic/Dockerfile.generated",
+  "image": "agentic-devsecops-5c836109:build-1",
+  "image_id": "sha256:6606f6d998d2c526ecb2871821787045f2654fec561c6aec8d7a8a21d588f000"
+}

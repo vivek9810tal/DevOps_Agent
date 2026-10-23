@@ -1,0 +1,9 @@
+{
+  "stage": "Deploy",
+  "status": "NOT_APPLICABLE",
+  "container": "agentic-stage-e43de3ca",
+  "image": "agentic-devsecops-e43de3ca:build-1",
+  "container_port": "8080",
+  "exit_code": 0,
+  "reason": "Container completed successfully but did not remain running as a service. Deployment/DAST not applicable."
+}

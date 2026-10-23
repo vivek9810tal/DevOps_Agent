@@ -1,0 +1,9 @@
+{
+  "run_id": "903901e9",
+  "repository": "https://github.com/rahulchembra/CI-CD-Pipeline-with-GitHub-Actions-and-Docker-Local-Deployment.git",
+  "branch": "main",
+  "commit": "e9f0fbb457fe334b351674fddc6841f45dc00676",
+  "project_type": "python",
+  "dockerfile_present": true,
+  "jenkins_build": "1"
+}

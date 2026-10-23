@@ -1,0 +1,6 @@
+{
+  "stage": "Release",
+  "status": "TAGGED_LOCAL",
+  "release_image": "agentic-devsecops-e43de3ca:release-1",
+  "registry_push": false
+}

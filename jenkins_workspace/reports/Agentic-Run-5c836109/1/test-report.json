@@ -1,0 +1,11 @@
+{
+  "unit_tests": "NOT_CONFIGURED",
+  "unit_test_runner": null,
+  "unit_test_exit_code": null,
+  "probe_url": "http://127.0.0.1:56371/health",
+  "http_probe_exit_code": 0,
+  "zap_mode": "DOCKER",
+  "zap_target": "http://host.docker.internal:56371",
+  "zap_exit_code": 2,
+  "stage_status": "EXECUTED"
+}

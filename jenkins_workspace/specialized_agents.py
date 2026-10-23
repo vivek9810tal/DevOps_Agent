@@ -81,6 +81,17 @@ def _github_inventory(repo_url: str, branch: str) -> Dict[str, Any]:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as response:
             data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403) and "Authorization" in headers:
+            retry_headers = {"Accept": "application/vnd.github+json", "User-Agent": "Agentic-DevSecOps/4.0"}
+            try:
+                req = urllib.request.Request(url, headers=retry_headers)
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+            except Exception as retry_exc:
+                return {"available": False, "error": str(retry_exc), "auth_retry": "anonymous_failed"}
+        else:
+            return {"available": False, "error": str(exc)}
     except Exception as exc:
         return {"available": False, "error": str(exc)}
 
@@ -96,11 +107,11 @@ def _github_inventory(repo_url: str, branch: str) -> Dict[str, Any]:
         "pom.xml", "build.gradle", "build.gradle.kts", "gradlew",
         "gradlew.bat", "go.mod", "Cargo.toml", "composer.json",
         "Gemfile", "Package.swift", "pubspec.yaml", "mix.exs",
-        "CMakeLists.txt", "Makefile", "Dockerfile",
+        "CMakeLists.txt", "Makefile", "Dockerfile", "build.sbt", "project.clj", "deps.edn", "stack.yaml", "cabal.project", "Project.toml", "DESCRIPTION", "cpanfile", "WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel", "meson.build",
     }
 
     for path in files:
-        if path.split("/")[-1] in interesting or path.endswith((".sln", ".csproj")):
+        if path.split("/")[-1] in interesting or path.endswith((".sln", ".csproj", ".fsproj", ".vbproj", ".cabal", ".rockspec")):
             manifests.append(path)
 
     extension_counts: Dict[str, int] = {}
@@ -249,7 +260,7 @@ def container_deployment_agent(state: CICDState) -> Dict[str, Any]:
         DeploymentStrategy,
         """You are the Container / Deployment Agent.
 Determine whether containerization and isolated staging deployment are appropriate.
-Never infer a port without evidence. Never equate Dockerfile with a web service.
+Never infer a port without evidence. Never equate Dockerfile with a web service. Generated staging adapters such as JupyterLab are explicit runtime adapters and must not be described as the repository's native application.
 Never recommend production push unless explicitly configured.""",
         state,
     )

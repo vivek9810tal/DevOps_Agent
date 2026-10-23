@@ -1,0 +1,11 @@
+{
+  "stage": "Deploy",
+  "status": "STAGING_RUNNING",
+  "container": "agentic-stage-4b26e87d",
+  "image": "agentic-devsecops-4b26e87d:build-1",
+  "container_port": "5000",
+  "host_port": "63244",
+  "url": "http://127.0.0.1:63244",
+  "health_url": "http://127.0.0.1:63244/health",
+  "persistence": "KEPT_RUNNING_AFTER_PIPELINE"
+}

@@ -4,7 +4,7 @@ from typing import Annotated, Any, Dict, List, Literal, TypedDict
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
-StageStatus = Literal["pending", "queued", "running", "success", "failed", "skipped"]
+StageStatus = Literal["pending", "queued", "running", "success", "failed", "skipped", "blocked"]
 
 
 class StageStatuses(TypedDict, total=False):
@@ -42,7 +42,7 @@ class CICDState(TypedDict, total=False):
     jenkins_build_url: str
     jenkins_queue_url: str
     pipeline_status: Literal[
-        "pending", "queued", "running", "success", "failed", "unknown"
+        "pending", "queued", "running", "success", "failed", "blocked", "unknown"
     ]
     error_message: str
     jenkins_triggered: bool

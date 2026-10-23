@@ -1,0 +1,154 @@
+{
+  "version": "1.179.0",
+  "results": [
+    {
+      "check_id": "dockerfile.security.missing-user.missing-user",
+      "path": "Dockerfile",
+      "start": {
+        "line": 14,
+        "col": 1,
+        "offset": 300
+      },
+      "end": {
+        "line": 14,
+        "col": 73,
+        "offset": 372
+      },
+      "extra": {
+        "message": "By not specifying a USER, a program in the container may run as 'root'. This is a security hazard. If an attacker can control a process running as root, they may have control over the container. Ensure that the last USER in a Dockerfile is a USER other than 'root'.",
+        "fix": "USER non-root\nCMD [\"echo\", \"Enterprise ML Service Successfully Deployed and Running.\"]",
+        "metadata": {
+          "cwe": [
+            "CWE-250: Execution with Unnecessary Privileges"
+          ],
+          "category": "security",
+          "technology": [
+            "dockerfile"
+          ],
+          "confidence": "MEDIUM",
+          "owasp": [
+            "A04:2021 - Insecure Design",
+            "A06:2025 - Insecure Design"
+          ],
+          "references": [
+            "https://owasp.org/Top10/A04_2021-Insecure_Design"
+          ],
+          "subcategory": [
+            "audit"
+          ],
+          "likelihood": "LOW",
+          "impact": "MEDIUM",
+          "license": "Semgrep Rules License v1.0. For more details, visit semgrep.dev/legal/rules-license",
+          "vulnerability_class": [
+            "Improper Authorization"
+          ],
+          "source": "https://semgrep.dev/r/dockerfile.security.missing-user.missing-user",
+          "shortlink": "https://sg.run/Gbvn"
+        },
+        "severity": "ERROR",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "AIML Supervised Learning project 1.ipynb",
+      "Airline_Fare_Analysis_Case_Study_Linear_Regression.ipynb",
+      "Credit risk.ipynb",
+      "Data1.csv",
+      "Data2.csv",
+      "Dockerfile",
+      "Image classifier - NB, KNN, SVM.ipynb",
+      "Jenkinsfile",
+      "KNN(2).ipynb",
+      "Logistic_Regression.ipynb",
+      "M1W1 Mentored Session Casestudy - LGD dataset-1-1.ipynb",
+      "Normal.csv",
+      "reports\\build-report.json",
+      "reports\\git-commit.txt",
+      "reports\\project-metadata.json",
+      "reports\\project-type.txt",
+      "reports\\repo_build_helper.py",
+      "text classification ML - Customer Satisfaction prediction.ipynb",
+      "Type_H.csv",
+      "Type_S.csv"
+    ]
+  },
+  "time": {
+    "rules": [],
+    "rules_parse_time": 0.33663439750671387,
+    "profiling_times": {
+      "config_time": 0.9877099990844727,
+      "core_time": 1.4551219940185547,
+      "ignores_time": 0.0021605491638183594,
+      "total_time": 2.4725656509399414
+    },
+    "parsing_time": {
+      "total_time": 0.0,
+      "per_file_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_files": []
+    },
+    "scanning_time": {
+      "total_time": 4.799883842468262,
+      "per_file_time": {
+        "mean": 0.09230545850900501,
+        "std_dev": 0.023693546942335428
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_files": []
+    },
+    "matching_time": {
+      "total_time": 0.0,
+      "per_file_and_rule_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_rules_on_files": []
+    },
+    "tainting_time": {
+      "total_time": 0.0,
+      "per_def_and_rule_time": {
+        "mean": 0.0,
+        "std_dev": 0.0
+      },
+      "very_slow_stats": {
+        "time_ratio": 0.0,
+        "count_ratio": 0.0
+      },
+      "very_slow_rules_on_defs": []
+    },
+    "fixpoint_timeouts": [],
+    "prefiltering": {
+      "project_level_time": 0.0,
+      "file_level_time": 0.0,
+      "rules_with_project_prefilters_ratio": 0.0,
+      "rules_with_file_prefilters_ratio": 0.9731489015459723,
+      "rules_selected_ratio": 0.05532953620829943,
+      "rules_matched_ratio": 0.05532953620829943
+    },
+    "targets": [],
+    "total_bytes": 0,
+    "max_memory_bytes": 1280562304
+  },
+  "engine_requested": "OSS",
+  "skipped_rules": [],
+  "profiling_results": []
+}

@@ -1,0 +1,7 @@
+{
+  "project_type": "jupyter",
+  "mode": "SOURCE_ONLY",
+  "host_runtime_missing": false,
+  "docker_available": true,
+  "dockerfile_present": true
+}

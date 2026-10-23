@@ -1,0 +1,12 @@
+{
+  "unit_tests": "NOT_CONFIGURED",
+  "runner": null,
+  "exit_code": null,
+  "discovery": {
+    "project_type": "jupyter",
+    "selected_strategy": null,
+    "evidence": [
+      "no test adapter for project type jupyter"
+    ]
+  }
+}

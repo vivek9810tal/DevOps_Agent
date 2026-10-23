@@ -1,0 +1,37 @@
+{
+  "semgrep": {
+    "executed": false,
+    "findings": null,
+    "error_severity": null
+  },
+  "gitleaks": {
+    "executed": true,
+    "findings": 0
+  },
+  "trivy": {
+    "executed": true,
+    "critical": 0,
+    "high": 2
+  },
+  "trivy_iac": {
+    "executed": true,
+    "critical": 0,
+    "high": 1
+  },
+  "grype": {
+    "executed": true,
+    "critical": 2,
+    "high": 78
+  },
+  "zap": {
+    "executed": true,
+    "high": 1,
+    "medium": 5
+  },
+  "policy_failures": [
+    "semgrep-report.json: invalid JSON: 'utf-8' codec can't decode byte 0x97 in position 442: invalid start byte",
+    "Grype CRITICAL findings: 2",
+    "ZAP HIGH findings: 1",
+    "semgrep: required report missing"
+  ]
+}
